@@ -1,0 +1,18 @@
+{
+  "name": "libera-leads",
+  "version": "1.0.0",
+  "description": "Google Maps scraper for lead generation",
+  "main": "scraper.js",
+  "scripts": {
+    "start": "node scraper.js",
+    "scrape": "node scraper.js"
+  },
+  "keywords": [],
+  "author": "LIBERA Studio",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "playwright": "^1.44.0"
+  }
+}
