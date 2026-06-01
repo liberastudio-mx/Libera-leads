@@ -46,7 +46,9 @@ async function getPendingArticles() {
   const filter = encodeURIComponent(
     `AND({Publicado}=TRUE(), {Instagram_Posted}=FALSE(), {Preview}!='')`
   );
-  const data = await airtableReq(`/${RADAR_BASE_ID}/${RADAR_TABLE_ID}?filterByFormula=${filter}`);
+  const data = await airtableReq(
+    `/${RADAR_BASE_ID}/${RADAR_TABLE_ID}?filterByFormula=${filter}&returnFieldsByFieldId=true`
+  );
   return data.records || [];
 }
 
