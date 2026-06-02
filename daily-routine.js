@@ -3,6 +3,7 @@ const { processInbox } = require('./process-inbox');
 const { generateContent } = require('./generate-content');
 const { postToInstagram } = require('./post-instagram');
 const { postRadarArticles } = require('./post-radar');
+const { postSocialContent } = require('./post-social');
 const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -71,6 +72,19 @@ function log(msg) {
     }
   } catch (err) {
     log(`ERROR en Radar Instagram: ${err.message}`);
+  }
+
+  // 6. Publicar contenido social del día (SOCIAL-MEDIA-MANAGER)
+  log('\n── Paso 6: Publicando posts sociales (SOCIAL-MEDIA-MANAGER) ──');
+  try {
+    const socialResults = await postSocialContent();
+    if (socialResults.length > 0) {
+      socialResults.forEach(r => log(`✓ Post publicado: [${r.postId}] IG: ${r.igMediaId || '-'} FB: ${r.fbPostId || '-'}`));
+    } else {
+      log('✓ Sin posts sociales pendientes hoy.');
+    }
+  } catch (err) {
+    log(`ERROR en posts sociales: ${err.message}`);
   }
 
   log('\n═══ Rutina completada ═══');
