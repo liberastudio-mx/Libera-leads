@@ -25,7 +25,9 @@ const F = {
   fbPosted:  'fldAGIHpaSF7S8xWZ',  // FB_Posted
 };
 
-const HASHTAGS = '#liberastudio #ai #automatizacion #tecnologia #negocios #ia #mexico #merida #agenciaia #herramientas';
+const HASHTAGS = '#liberastudio #ai #automatizacion #tecnologia #negocios #ia #mexico #merida #agenciaia #herramientas ' +
+  '#inteligenciaartificial #innovacion #transformaciondigital #emprendimiento #pymes #productividad #chatgpt #claudeai ' +
+  '#machinelearning #software #startups #marketingdigital #futuro #techlatam #emprendedores #yucatan #digitalizacion #noticiastech';
 
 // ── Airtable ──────────────────────────────────────────────────────────────────
 
@@ -82,6 +84,8 @@ function buildCaption(fields) {
 
 // ── Meta Graph API ────────────────────────────────────────────────────────────
 
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 async function graphPost(endpoint, body) {
   const res  = await fetch(`${GRAPH_BASE}${endpoint}`, {
     method: 'POST',
@@ -89,14 +93,44 @@ async function graphPost(endpoint, body) {
     body: JSON.stringify({ ...body, access_token: META_TOKEN }),
   });
   const json = await res.json();
-  if (json.error) throw new Error(`Meta API: ${json.error.message} (code ${json.error.code})`);
+  if (json.error) {
+    const err = new Error(`Meta API: ${json.error.message} (code ${json.error.code})`);
+    err.code = json.error.code;
+    throw err;
+  }
   return json;
 }
 
+// thum.io genera el screenshot bajo demanda: la primera petición es lenta.
+// Si Instagram intenta descargar la imagen antes de que esté lista, falla con
+// código 9007 ("Media ID is not available"). Calentamos la caché antes de publicar.
+async function warmPreview(imageUrl) {
+  try {
+    await fetch(imageUrl);
+  } catch (_) {
+    /* el warm-up es best-effort; si falla, el retry de IG lo cubre */
+  }
+}
+
 async function publishToInstagram(imageUrl, caption) {
+  await warmPreview(imageUrl);
   const { id: creationId } = await graphPost(`/${IG_ID}/media`, { image_url: imageUrl, caption });
-  const { id: mediaId }    = await graphPost(`/${IG_ID}/media_publish`, { creation_id: creationId });
-  return mediaId;
+
+  // El contenedor descarga la imagen de forma asíncrona; reintentar el publish
+  // ante 9007 con backoff hasta que Instagram termine de procesarla.
+  const MAX_RETRIES = 4;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const { id: mediaId } = await graphPost(`/${IG_ID}/media_publish`, { creation_id: creationId });
+      return mediaId;
+    } catch (err) {
+      if (err.code === 9007 && attempt < MAX_RETRIES) {
+        await sleep(attempt * 5000); // 5s, 10s, 15s
+        continue;
+      }
+      throw err;
+    }
+  }
 }
 
 async function publishToFacebook(imageUrl, caption) {
