@@ -119,9 +119,10 @@ app.get('/', (req, res) => {
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:#06070E;color:#EDE9E1;font-family:'Manrope',sans-serif;min-height:100vh}
   header{background:#0C0B18;border-bottom:1px solid #1E1B30;padding:20px 32px;display:flex;align-items:center;justify-content:space-between}
-  .logo{font-size:24px;font-weight:800;letter-spacing:-0.5px}
-  .logo span{color:#E85220}
-  .badge{font-size:10px;font-weight:700;color:#65708F;letter-spacing:2px;text-transform:uppercase;margin-left:8px;vertical-align:middle}
+  .logo{font-size:22px;letter-spacing:0.5px;display:flex;align-items:baseline;gap:8px}
+  .logo-libera{font-weight:800;color:#E85220;text-transform:uppercase;letter-spacing:2px}
+  .logo-dot{color:#3D4066;font-weight:300;font-size:18px}
+  .logo-leads{font-weight:300;color:#EDE9E1;text-transform:lowercase;letter-spacing:1px}
   .last-updated{font-size:12px;color:#3D4066}
   main{padding:32px;max-width:1100px;margin:0 auto}
   h2{font-size:13px;font-weight:700;color:#65708F;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
@@ -172,7 +173,7 @@ app.get('/', (req, res) => {
 </head>
 <body>
 <header>
-  <div><span class="logo">LIBER<span>A</span></span><span class="badge">Studio</span></div>
+  <div class="logo"><span class="logo-libera">Libera</span><span class="logo-dot">·</span><span class="logo-leads">leads</span></div>
   <span class="last-updated" id="lastUpdated">Cargando...</span>
 </header>
 <main>
