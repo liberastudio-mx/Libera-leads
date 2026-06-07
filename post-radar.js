@@ -6,8 +6,8 @@
 require('dotenv').config();
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
-const RADAR_BASE_ID  = 'appCLF2sMEV9YVJ2A';
-const RADAR_TABLE_ID = 'tbltjVkZ8oHowq4t1';
+const RADAR_BASE_ID  = process.env.AIRTABLE_RADAR_BASE_ID;
+const RADAR_TABLE_ID = process.env.AIRTABLE_RADAR_TABLE_ID;
 const IG_ID          = process.env.META_IG_BUSINESS_ACCOUNT_ID;
 const FB_PAGE_ID     = process.env.META_FB_PAGE_ID;
 const META_TOKEN     = process.env.META_PAGE_ACCESS_TOKEN;

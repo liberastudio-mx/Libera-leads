@@ -1,6 +1,9 @@
 node_modules/
 output/
+logs/
 .env
 debug-page.html
 debug-place.png
 debug-screenshot.png
+*.png
+*.html

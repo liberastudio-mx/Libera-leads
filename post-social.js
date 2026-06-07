@@ -1,7 +1,8 @@
 /**
  * LIBERA Studio — Social Media Publisher
  * Lee posts del Post Master en Airtable LIBERA SMM,
- * genera imagen con DALL-E 3 y publica en Instagram + Facebook.
+ * toma el asset ya diseñado desde Google Drive (Link Drive / Image_or_Asset_Link)
+ * y publica en Instagram + Facebook. Sin generación de imagen (sin DALL-E).
  * Solo procesa posts de la plataforma "Meta" con Publish_Date <= hoy.
  *
  * Fase 1: Single Image 4:5 + Text + Image 4:5
@@ -10,15 +11,14 @@
 require('dotenv').config();
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
-const OPENAI_KEY     = process.env.OPENAI_API_KEY;
 const IG_ID          = process.env.META_IG_BUSINESS_ACCOUNT_ID;
 const FB_PAGE_ID     = process.env.META_FB_PAGE_ID;
 const META_TOKEN     = process.env.META_PAGE_ACCESS_TOKEN;
 const API_VER        = 'v21.0';
 const GRAPH_BASE     = `https://graph.facebook.com/${API_VER}`;
 
-const BASE_ID  = 'appCLF2sMEV9YVJ2A';
-const TABLE_ID = 'tblc7xwv2voe1RuRC';
+const BASE_ID  = process.env.AIRTABLE_SMM_BASE_ID;
+const TABLE_ID = process.env.AIRTABLE_SMM_TABLE_ID;
 
 // Field IDs Post Master
 const F = {
@@ -34,10 +34,20 @@ const F = {
   cta:            'fldhbJbhOAwNPpRCH',  // CTA
   hashtags:       'fldiURQF2oidw3shS',  // Hashtags
   postedUrl:      'fldXGDWxwemtd69zC',  // Posted_URL
+  imageLink:      'fldS5Yh5cFvUELlDp',  // Image_or_Asset_Link
+  linkDrive:      'fldTbAGIRCYilKcHB',  // Link Drive
 };
 
-// Formatos soportados en Fase 1
-const SUPPORTED_FORMATS = ['Single Image 4:5', 'Text + Image 4:5'];
+// Formatos soportados. Carousel 4:5 se publica como imagen simple mientras el
+// asset en Drive sea una sola imagen (un solo Link Drive por registro).
+const SUPPORTED_FORMATS = ['Single Image 4:5', 'Text + Image 4:5', 'Carousel 4:5'];
+
+// Normaliza un valor de singleSelect: REST con returnFieldsByFieldId lo da como
+// string; el SDK/MCP lo da como {name}. Devuelve siempre el string.
+function selName(v) {
+  if (!v) return '';
+  return typeof v === 'string' ? v : (v.name || '');
+}
 
 // ── Airtable ──────────────────────────────────────────────────────────────────
 
@@ -67,11 +77,9 @@ async function getTodayPosts() {
     `/${BASE_ID}/${TABLE_ID}?filterByFormula=${filter}&returnFieldsByFieldId=true`
   );
   const records = data.records || [];
-  // Solo formatos soportados en Fase 1
-  return records.filter(r => {
-    const fmt = r.fields[F.format]?.name || '';
-    return SUPPORTED_FORMATS.includes(fmt);
-  });
+  // Solo formatos soportados. Con returnFieldsByFieldId=true los singleSelect
+  // llegan como string plano, no como {name}.
+  return records.filter(r => SUPPORTED_FORMATS.includes(selName(r.fields[F.format])));
 }
 
 async function markPublished(recordId, postedUrl) {
@@ -80,27 +88,47 @@ async function markPublished(recordId, postedUrl) {
   });
 }
 
-// ── DALL-E 3 Image Generation ─────────────────────────────────────────────────
+// ── Validación de imagen ──────────────────────────────────────────────────────
 
-async function generateImage(visualConcept, visualElements, hook) {
-  const prompt = [
-    `Social media post for LIBERA Studio (tech agency, Mérida Mexico).`,
-    `Visual concept: ${visualConcept}.`,
-    `Visual elements: ${visualElements}.`,
-    `Main message: "${hook}".`,
-    `Style: clean, modern, professional. Orange accent (#E8612A) on dark background.`,
-    `No text overlays unless specified. 4:5 aspect ratio composition.`,
-  ].join(' ');
+// Verifica que la URL devuelva un content-type de imagen sin requerir auth.
+async function isImageAccessible(url) {
+  try {
+    const res = await fetch(url, { method: 'HEAD', redirect: 'error' });
+    const ct  = res.headers.get('content-type') || '';
+    return res.ok && ct.startsWith('image/');
+  } catch {
+    return false;
+  }
+}
 
-  console.log(`    Generando imagen DALL-E 3...`);
-  const res = await fetch('https://api.openai.com/v1/images/generate', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${OPENAI_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'dall-e-3', prompt, n: 1, size: '1024x1024', quality: 'standard' }),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(`DALL-E: ${json.error.message}`);
-  return json.data[0].url;
+// ── Asset desde Google Drive ──────────────────────────────────────────────────
+
+// Extrae el file ID de un link de Google Drive en cualquiera de sus formatos:
+//   https://drive.google.com/file/d/<ID>/view?usp=sharing
+//   https://drive.google.com/open?id=<ID>
+//   https://drive.google.com/uc?export=download&id=<ID>
+function extractDriveId(url) {
+  if (!url) return null;
+  const m = url.match(/\/file\/d\/([A-Za-z0-9_-]+)/) || url.match(/[?&]id=([A-Za-z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+
+// Convierte un link de Drive en una URL de imagen directa que Meta puede descargar.
+// drive.usercontent.google.com es el endpoint oficial para archivos públicos sin redirect.
+function driveImageUrl(rawLink) {
+  const id = extractDriveId(rawLink);
+  if (!id) return null;
+  return `https://drive.usercontent.google.com/download?id=${id}&export=view`;
+}
+
+// Devuelve la URL de imagen lista para Meta a partir del registro de Airtable.
+// Prioriza Image_or_Asset_Link; si no, usa Link Drive. Si ya es una URL directa
+// (no Drive), la deja tal cual.
+function getImageUrl(fields) {
+  const raw = fields[F.imageLink] || fields[F.linkDrive] || '';
+  if (!raw) return null;
+  if (raw.includes('drive.google.com')) return driveImageUrl(raw);
+  return raw;
 }
 
 // ── Caption builder ───────────────────────────────────────────────────────────
@@ -144,7 +172,6 @@ async function publishToFacebook(imageUrl, caption) {
 
 async function postSocialContent() {
   if (!AIRTABLE_TOKEN) throw new Error('Falta AIRTABLE_TOKEN en .env');
-  if (!OPENAI_KEY)     throw new Error('Falta OPENAI_API_KEY en .env');
   if (!IG_ID || !META_TOKEN) throw new Error('Faltan credenciales Meta en .env');
   if (!FB_PAGE_ID)     throw new Error('Falta META_FB_PAGE_ID en .env');
 
@@ -159,20 +186,27 @@ async function postSocialContent() {
   const results = [];
   for (const { id: recordId, fields } of posts) {
     const postId  = fields[F.postId]  || recordId;
-    const format  = fields[F.format]?.name || '';
+    const format  = selName(fields[F.format]);
     const hook    = fields[F.hook]    || '';
 
     console.log(`  → [${postId}] "${hook.slice(0, 50)}..."`);
     console.log(`    Formato: ${format}`);
 
     try {
-      // 1. Generar imagen
-      const imageUrl = await generateImage(
-        fields[F.visualConcept]  || '',
-        fields[F.visualElements] || '',
-        hook
-      );
-      console.log(`    ✓ Imagen generada`);
+      // 1. Tomar el asset ya diseñado desde Drive (Airtable)
+      const imageUrl = getImageUrl(fields);
+      if (!imageUrl) {
+        console.error(`    ✗ Sin asset: falta Image_or_Asset_Link / Link Drive. Saltando.`);
+        continue;
+      }
+      console.log(`    ✓ Asset: ${imageUrl}`);
+
+      // Validar que Meta pueda acceder a la imagen antes de publicar
+      const accessible = await isImageAccessible(imageUrl);
+      if (!accessible) {
+        console.error(`    ✗ Imagen no accesible públicamente. Comparte el archivo en Drive como "Cualquiera con el enlace". Saltando.`);
+        continue;
+      }
 
       // 2. Construir caption
       const caption = buildCaption(fields);
@@ -194,7 +228,11 @@ async function postSocialContent() {
         console.error(`    ✗ Facebook: ${err.message}`);
       }
 
-      // 5. Marcar publicado
+      // 5. Marcar publicado solo si al menos una plataforma tuvo éxito
+      if (!igMediaId && !fbPostId) {
+        console.error(`    ✗ Ambas plataformas fallaron — Publicado NO actualizado.`);
+        continue;
+      }
       const postedUrl = igMediaId
         ? `https://www.instagram.com/p/${igMediaId}`
         : fbPostId || '';
