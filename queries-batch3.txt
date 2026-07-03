@@ -1,0 +1,11 @@
+# Tanda 3 — Nutricionista + Fisioterapista
+nutricionista norte Mérida | 50
+nutricionista sur Mérida | 50
+nutricionista centro Mérida | 50
+nutricionista oriente Mérida | 50
+nutricionista poniente Mérida | 50
+fisioterapista norte Mérida | 50
+fisioterapista sur Mérida | 50
+fisioterapista centro Mérida | 50
+fisioterapista oriente Mérida | 50
+fisioterapista poniente Mérida | 50

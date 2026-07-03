@@ -1,0 +1,10 @@
+# Tanda 4 — Pediatra + Ginecólogo
+pediatra norte Mérida | 50
+pediatra sur Mérida | 50
+pediatra centro Mérida | 50
+pediatra oriente Mérida | 50
+pediatra poniente Mérida | 50
+ginecólogo norte Mérida | 50
+ginecólogo sur Mérida | 50
+ginecólogo centro Mérida | 50
+ginecólogo oriente Mérida | 50

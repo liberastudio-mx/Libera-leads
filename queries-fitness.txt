@@ -1,0 +1,44 @@
+# LIBERA Leads — Fitness por zona
+# Formato: búsqueda | max_resultados
+# Correr: node batch.js queries-fitness.txt
+# Después: node dedup.js --delete
+# Zonas: Mérida (norte/centro/oriente) + alrededores + Valladolid
+
+# ── GIMNASIO ──────────────────────────────────────────────────────────────────
+gimnasio norte Mérida | 80
+gimnasio centro Mérida | 80
+gimnasio oriente Mérida | 80
+gimnasio Progreso Yucatán | 40
+gimnasio Valladolid Yucatán | 40
+
+# ── ENTRENADOR PERSONAL ───────────────────────────────────────────────────────
+entrenador personal norte Mérida | 60
+entrenador personal centro Mérida | 60
+entrenador personal oriente Mérida | 60
+entrenador personal Valladolid Yucatán | 40
+
+# ── YOGA ──────────────────────────────────────────────────────────────────────
+yoga norte Mérida | 60
+yoga centro Mérida | 60
+yoga Valladolid Yucatán | 40
+
+# ── PILATES ───────────────────────────────────────────────────────────────────
+pilates norte Mérida | 60
+pilates centro Mérida | 60
+
+# ── CROSSFIT ──────────────────────────────────────────────────────────────────
+crossfit Mérida Yucatán | 80
+crossfit Valladolid Yucatán | 40
+
+# ── BOXEO ─────────────────────────────────────────────────────────────────────
+boxeo Mérida Yucatán | 80
+
+# ── NATACIÓN ──────────────────────────────────────────────────────────────────
+natación Mérida Yucatán | 80
+
+# ── SPINNING / CYCLING ────────────────────────────────────────────────────────
+spinning Mérida Yucatán | 60
+
+# ── FUNCIONAL / HIIT ──────────────────────────────────────────────────────────
+entrenamiento funcional Mérida Yucatán | 60
+HIIT Mérida Yucatán | 50

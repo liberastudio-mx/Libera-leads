@@ -1,0 +1,9 @@
+# Estética y belleza
+salón de belleza norte Mérida | 80
+salón de belleza sur Mérida | 80
+salón de belleza centro Mérida | 80
+barbería norte Mérida | 60
+barbería sur Mérida | 60
+barbería centro Mérida | 60
+spa masajes Mérida | 60
+centro estética médica Mérida | 60

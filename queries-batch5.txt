@@ -1,0 +1,11 @@
+# Tanda 5 — Dermatólogo + Ortodoncista + Oftalmólogo
+dermatólogo norte Mérida | 50
+dermatólogo sur Mérida | 50
+dermatólogo centro Mérida | 50
+dermatólogo oriente Mérida | 50
+ortodoncista norte Mérida | 50
+ortodoncista sur Mérida | 50
+ortodoncista centro Mérida | 50
+oftalmólogo norte Mérida | 50
+oftalmólogo sur Mérida | 50
+oftalmólogo centro Mérida | 50

@@ -163,16 +163,18 @@ async function postRadarArticles() {
     const fbPosted = !!fields[F.fbPosted];
     const caption  = buildCaption(fields);
     const updates  = {};
+    let igError, fbError, mediaId, postId;
 
     console.log(`  → "${title}"`);
 
     if (!igPosted) {
       try {
-        const mediaId = await publishToInstagram(preview, caption);
+        mediaId = await publishToInstagram(preview, caption);
         updates[F.igPosted] = true;
         console.log(`    ✓ Instagram — media_id: ${mediaId}`);
       } catch (err) {
-        console.error(`    ✗ Instagram: ${err.message}`);
+        igError = err.message;
+        console.error(`    ✗ Instagram: ${igError}`);
       }
     } else {
       console.log(`    · Instagram ya publicado`);
@@ -180,18 +182,19 @@ async function postRadarArticles() {
 
     if (!fbPosted) {
       try {
-        const postId = await publishToFacebook(preview, caption);
+        postId = await publishToFacebook(preview, caption);
         updates[F.fbPosted] = true;
         console.log(`    ✓ Facebook — post_id: ${postId}`);
       } catch (err) {
-        console.error(`    ✗ Facebook: ${err.message}`);
+        fbError = err.message;
+        console.error(`    ✗ Facebook: ${fbError}`);
       }
     } else {
       console.log(`    · Facebook ya publicado`);
     }
 
     if (Object.keys(updates).length > 0) await markPosted(recordId, updates);
-    results.push({ title });
+    results.push({ title, mediaId, postId, igError, fbError });
   }
   return results;
 }

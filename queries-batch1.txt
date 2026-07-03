@@ -1,0 +1,7 @@
+# Tanda 1 — Dentistas por zona
+dentista norte Mérida | 80
+dentista sur Mérida | 80
+dentista centro Mérida | 80
+dentista oriente Mérida | 80
+dentista poniente Mérida | 80
+dentista Caucel Mérida | 60

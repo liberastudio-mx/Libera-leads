@@ -1,0 +1,30 @@
+# LIBERA Leads — Gastronomía por zona
+# Formato: búsqueda | max_resultados
+# Correr: node batch.js queries-gastronomia.txt
+# Después: node dedup.js --delete
+# Zonas: Mérida (norte/centro/oriente) + alrededores + Valladolid
+
+# ── RESTAURANTE INDEPENDIENTE ─────────────────────────────────────────────────
+restaurante independiente norte Mérida | 80
+restaurante independiente centro Mérida | 80
+restaurante independiente oriente Mérida | 80
+restaurante independiente Progreso Yucatán | 60
+restaurante independiente Valladolid Yucatán | 60
+
+# ── CAFETERÍA ─────────────────────────────────────────────────────────────────
+cafetería especialidad norte Mérida | 60
+cafetería especialidad centro Mérida | 60
+cafetería especialidad Valladolid Yucatán | 40
+
+# ── CATERING Y REPOSTERÍA ─────────────────────────────────────────────────────
+catering Mérida Yucatán | 40
+repostería pedidos Mérida | 40
+pastelería artesanal Mérida | 40
+
+# ── FOOD TRUCKS / COCINAS OCULTAS ────────────────────────────────────────────
+food truck Mérida Yucatán | 40
+cocina oculta Mérida | 30
+
+# ── MARISCOS Y ESPECIALIDADES ─────────────────────────────────────────────────
+marisquería Mérida norte | 60
+marisquería Progreso Yucatán | 60

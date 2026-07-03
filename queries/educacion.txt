@@ -1,0 +1,10 @@
+# Educación
+academia idiomas norte Mérida | 60
+academia idiomas sur Mérida | 60
+academia idiomas centro Mérida | 60
+escuela música Mérida | 60
+academia arte Mérida | 40
+tutor clases particulares Mérida | 60
+guardería privada norte Mérida | 60
+guardería privada sur Mérida | 60
+guardería privada centro Mérida | 60

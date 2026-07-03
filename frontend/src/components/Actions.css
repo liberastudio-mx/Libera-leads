@@ -1,0 +1,12 @@
+.actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.run-status {
+  font-size: 13px;
+  color: #22C55E;
+}

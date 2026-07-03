@@ -1,0 +1,24 @@
+# LIBERA Leads — Lista de búsquedas
+# Formato: búsqueda | max_resultados
+# Las líneas con # se ignoran
+
+# Psicólogos en Yucatán
+psicólogos norte Mérida | 80
+psicólogos sur Mérida | 80
+psicólogos centro Mérida | 80
+psicólogos Progreso Yucatán | 50
+psicólogos Valladolid Yucatán | 50
+
+# Salud
+nutricionista Mérida Yucatán | 80
+psiquiatra Mérida Yucatán | 60
+fisioterapista Mérida Yucatán | 80
+dentista Mérida Yucatán | 80
+médico general Mérida Yucatán | 80
+pediatra Mérida Yucatán | 60
+ginecólogo Mérida Yucatán | 60
+dermatólogo Mérida Yucatán | 60
+ortodoncista Mérida Yucatán | 60
+oftalmólogo Mérida Yucatán | 60
+quiropráctico Mérida Yucatán | 40
+veterinario Mérida Yucatán | 80

@@ -1,0 +1,21 @@
+# LIBERA Leads — Run 2026-06-24
+# dentistas norte+centro · arquitectos · veterinarias · restaurantes
+
+# ── DENTISTAS ─────────────────────────────────────────────────────────────────
+dentista norte Mérida | 80
+dentista centro Mérida | 80
+
+# ── ARQUITECTOS ───────────────────────────────────────────────────────────────
+arquitecto Mérida | 40
+
+# ── VETERINARIAS ──────────────────────────────────────────────────────────────
+veterinaria norte Mérida | 80
+veterinaria sur Mérida | 80
+veterinaria centro Mérida | 80
+veterinaria oriente Mérida | 80
+veterinaria poniente Mérida | 80
+
+# ── RESTAURANTES ──────────────────────────────────────────────────────────────
+restaurante independiente norte Mérida | 80
+restaurante independiente sur Mérida | 80
+restaurante independiente centro Mérida | 80

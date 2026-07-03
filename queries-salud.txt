@@ -1,0 +1,85 @@
+# LIBERA Leads — Salud por zona
+# Formato: búsqueda | max_resultados
+# Correr: node batch.js queries-salud.txt
+# Después de cada tanda: node dedup.js --delete
+# Zonas: Mérida (norte/centro/oriente) + alrededores + Valladolid
+
+# ── DENTISTAS ─────────────────────────────────────────────────────────────────
+dentista norte Mérida | 80
+dentista centro Mérida | 80
+dentista oriente Mérida | 80
+dentista Progreso Yucatán | 60
+dentista Kanasín Yucatán | 60
+dentista Umán Yucatán | 40
+dentista Motul Yucatán | 40
+dentista Izamal Yucatán | 40
+dentista Valladolid Yucatán | 60
+
+# ── MÉDICO GENERAL ────────────────────────────────────────────────────────────
+médico general norte Mérida | 80
+médico general centro Mérida | 80
+médico general oriente Mérida | 80
+médico general Progreso Yucatán | 60
+médico general Kanasín Yucatán | 60
+médico general Valladolid Yucatán | 60
+
+# ── NUTRICIONISTA ─────────────────────────────────────────────────────────────
+nutricionista norte Mérida | 60
+nutricionista centro Mérida | 60
+nutricionista oriente Mérida | 60
+nutricionista Valladolid Yucatán | 40
+
+# ── FISIOTERAPISTA ────────────────────────────────────────────────────────────
+fisioterapista norte Mérida | 60
+fisioterapista centro Mérida | 60
+fisioterapista oriente Mérida | 60
+fisioterapista Valladolid Yucatán | 40
+
+# ── PEDIATRA ──────────────────────────────────────────────────────────────────
+pediatra norte Mérida | 60
+pediatra centro Mérida | 60
+pediatra oriente Mérida | 60
+pediatra Valladolid Yucatán | 40
+
+# ── GINECÓLOGO ────────────────────────────────────────────────────────────────
+ginecólogo norte Mérida | 60
+ginecólogo centro Mérida | 60
+ginecólogo oriente Mérida | 60
+ginecólogo Valladolid Yucatán | 40
+
+# ── DERMATÓLOGO ───────────────────────────────────────────────────────────────
+dermatólogo norte Mérida | 60
+dermatólogo centro Mérida | 60
+dermatólogo oriente Mérida | 60
+dermatólogo Valladolid Yucatán | 40
+
+# ── ORTODONCISTA ──────────────────────────────────────────────────────────────
+ortodoncista norte Mérida | 60
+ortodoncista centro Mérida | 60
+ortodoncista oriente Mérida | 60
+ortodoncista Valladolid Yucatán | 40
+
+# ── OFTALMÓLOGO ───────────────────────────────────────────────────────────────
+oftalmólogo norte Mérida | 60
+oftalmólogo centro Mérida | 60
+oftalmólogo oriente Mérida | 40
+
+# ── PSIQUIATRA ────────────────────────────────────────────────────────────────
+psiquiatra Mérida Yucatán | 60
+
+# ── QUIROPRÁCTICO ─────────────────────────────────────────────────────────────
+quiropráctico Mérida Yucatán | 40
+
+# ── VETERINARIO ───────────────────────────────────────────────────────────────
+veterinario norte Mérida | 80
+veterinario centro Mérida | 80
+veterinario oriente Mérida | 80
+veterinario Progreso Yucatán | 40
+veterinario Valladolid Yucatán | 40
+
+# ── VETERINARIA ───────────────────────────────────────────────────────────────
+veterinaria norte Mérida | 80
+veterinaria centro Mérida | 80
+veterinaria oriente Mérida | 80
+veterinaria Progreso Yucatán | 40
+veterinaria Valladolid Yucatán | 40

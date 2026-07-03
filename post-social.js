@@ -157,10 +157,32 @@ async function graphPost(endpoint, body) {
   return json;
 }
 
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// Calienta la caché del thumbnail antes de crear el contenedor,
+// igual que en post-radar.js — reduce errores 9007 de Instagram.
+async function warmPreview(imageUrl) {
+  try { await fetch(imageUrl); } catch (_) {}
+}
+
 async function publishToInstagram(imageUrl, caption) {
+  await warmPreview(imageUrl);
   const { id: creationId } = await graphPost(`/${IG_ID}/media`, { image_url: imageUrl, caption });
-  const { id: mediaId }    = await graphPost(`/${IG_ID}/media_publish`, { creation_id: creationId });
-  return mediaId;
+
+  // Instagram procesa la imagen de forma asíncrona; reintentar ante código 9007.
+  const MAX_RETRIES = 4;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const { id: mediaId } = await graphPost(`/${IG_ID}/media_publish`, { creation_id: creationId });
+      return mediaId;
+    } catch (err) {
+      if (err.code === 9007 && attempt < MAX_RETRIES) {
+        await sleep(attempt * 5000); // 5s, 10s, 15s
+        continue;
+      }
+      throw err;
+    }
+  }
 }
 
 async function publishToFacebook(imageUrl, caption) {
@@ -196,7 +218,9 @@ async function postSocialContent() {
       // 1. Tomar el asset ya diseñado desde Drive (Airtable)
       const imageUrl = getImageUrl(fields);
       if (!imageUrl) {
-        console.error(`    ✗ Sin asset: falta Image_or_Asset_Link / Link Drive. Saltando.`);
+        const msg = 'Sin asset: falta Image_or_Asset_Link / Link Drive.';
+        console.error(`    ✗ ${msg} Saltando.`);
+        results.push({ postId, igMediaId: null, fbPostId: null, igError: msg, fbError: msg });
         continue;
       }
       console.log(`    ✓ Asset: ${imageUrl}`);
@@ -204,7 +228,9 @@ async function postSocialContent() {
       // Validar que Meta pueda acceder a la imagen antes de publicar
       const accessible = await isImageAccessible(imageUrl);
       if (!accessible) {
-        console.error(`    ✗ Imagen no accesible públicamente. Comparte el archivo en Drive como "Cualquiera con el enlace". Saltando.`);
+        const msg = 'Imagen no accesible públicamente. Comparte el archivo en Drive como "Cualquiera con el enlace".';
+        console.error(`    ✗ ${msg} Saltando.`);
+        results.push({ postId, igMediaId: null, fbPostId: null, igError: msg, fbError: msg });
         continue;
       }
 
@@ -212,12 +238,13 @@ async function postSocialContent() {
       const caption = buildCaption(fields);
 
       // 3. Publicar en Instagram
-      let igMediaId, fbPostId;
+      let igMediaId, fbPostId, igError, fbError;
       try {
         igMediaId = await publishToInstagram(imageUrl, caption);
         console.log(`    ✓ Instagram — media_id: ${igMediaId}`);
       } catch (err) {
-        console.error(`    ✗ Instagram: ${err.message}`);
+        igError = err.message;
+        console.error(`    ✗ Instagram: ${igError}`);
       }
 
       // 4. Publicar en Facebook
@@ -225,12 +252,14 @@ async function postSocialContent() {
         fbPostId = await publishToFacebook(imageUrl, caption);
         console.log(`    ✓ Facebook — post_id: ${fbPostId}`);
       } catch (err) {
-        console.error(`    ✗ Facebook: ${err.message}`);
+        fbError = err.message;
+        console.error(`    ✗ Facebook: ${fbError}`);
       }
 
       // 5. Marcar publicado solo si al menos una plataforma tuvo éxito
       if (!igMediaId && !fbPostId) {
         console.error(`    ✗ Ambas plataformas fallaron — Publicado NO actualizado.`);
+        results.push({ postId, igMediaId: null, fbPostId: null, igError, fbError });
         continue;
       }
       const postedUrl = igMediaId
@@ -239,9 +268,10 @@ async function postSocialContent() {
       await markPublished(recordId, postedUrl);
       console.log(`    ✓ Airtable actualizado — Publicado: true`);
 
-      results.push({ postId, igMediaId, fbPostId });
+      results.push({ postId, igMediaId, fbPostId, igError, fbError });
     } catch (err) {
       console.error(`    ERROR en [${postId}]: ${err.message}`);
+      results.push({ postId, igMediaId: null, fbPostId: null, igError: err.message });
     }
   }
   return results;
@@ -251,6 +281,9 @@ module.exports = { postSocialContent };
 
 if (require.main === module) {
   postSocialContent()
-    .then(r => { if (r.length) console.log(`\n✓ ${r.length} post(s) publicado(s).`); })
+    .then(r => {
+      const ok = r.filter(x => x.igMediaId || x.fbPostId).length;
+      if (ok) console.log(`\n✓ ${ok} post(s) publicado(s).`);
+    })
     .catch(err => { console.error('ERROR:', err.message); process.exit(1); });
 }

@@ -1,0 +1,7 @@
+# Tanda 2 — Médico general por zona
+médico general norte Mérida | 80
+médico general sur Mérida | 80
+médico general centro Mérida | 80
+médico general oriente Mérida | 80
+médico general poniente Mérida | 80
+médico general Caucel Mérida | 60

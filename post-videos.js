@@ -188,7 +188,7 @@ async function postVideoContent() {
     console.log(`    Plataformas: ${plats.join(', ')}`);
     console.log(`    Video: ${videoUrl}`);
 
-    let igMediaId, fbId;
+    let igMediaId, fbId, igError, fbError;
 
     if (plats.some(p => /instagram/i.test(p))) {
       try {
@@ -196,7 +196,8 @@ async function postVideoContent() {
         igMediaId = await publishReelToInstagram(videoUrl, caption);
         console.log(`\n    ✓ Instagram Reel — media_id: ${igMediaId}`);
       } catch (err) {
-        console.error(`\n    ✗ Instagram: ${err.message}`);
+        igError = err.message;
+        console.error(`\n    ✗ Instagram: ${igError}`);
       }
     }
 
@@ -206,16 +207,18 @@ async function postVideoContent() {
         fbId = await publishVideoToFacebook(videoUrl, caption);
         console.log(`    ✓ Facebook video — id: ${fbId}`);
       } catch (err) {
-        console.error(`    ✗ Facebook: ${err.message}`);
+        fbError = err.message;
+        console.error(`    ✗ Facebook: ${fbError}`);
       }
     }
 
     if (igMediaId || fbId) {
       await markPublished(recordId);
       console.log(`    ✓ Airtable actualizado — Publicado: true`);
-      results.push({ videoId, igMediaId, fbId });
+      results.push({ videoId, igMediaId, fbId, igError, fbError });
     } else {
       console.error(`    ✗ No se publicó en ninguna plataforma — no se marca.`);
+      results.push({ videoId, igMediaId: null, fbId: null, igError, fbError });
     }
   }
   return results;
@@ -225,6 +228,9 @@ module.exports = { postVideoContent };
 
 if (require.main === module) {
   postVideoContent()
-    .then(r => { if (r.length) console.log(`\n✓ ${r.length} video(s) publicado(s).`); })
+    .then(r => {
+      const ok = r.filter(x => x.igMediaId || x.fbId).length;
+      if (ok) console.log(`\n✓ ${ok} video(s) publicado(s).`);
+    })
     .catch(err => { console.error('ERROR:', err.message); process.exit(1); });
 }

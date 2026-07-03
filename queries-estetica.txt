@@ -1,0 +1,33 @@
+# LIBERA Leads — Estética y Belleza por zona
+# Formato: búsqueda | max_resultados
+# Correr: node batch.js queries-estetica.txt
+# Después: node dedup.js --delete
+# Zonas: Mérida (norte/centro/oriente) + alrededores + Valladolid
+
+# ── SALÓN DE BELLEZA ──────────────────────────────────────────────────────────
+salón de belleza norte Mérida | 30
+salón de belleza centro Mérida | 30
+salón de belleza oriente Mérida | 30
+salón de belleza Progreso Yucatán | 30
+salón de belleza Valladolid Yucatán | 30
+
+# ── BARBERÍA ──────────────────────────────────────────────────────────────────
+barbería norte Mérida | 30
+barbería centro Mérida | 30
+barbería oriente Mérida | 30
+barbería Valladolid Yucatán | 30
+
+# ── SPA Y MASAJES ─────────────────────────────────────────────────────────────
+spa masajes norte Mérida | 30
+spa masajes centro Mérida | 30
+spa masajes Valladolid Yucatán | 30
+
+# ── ESTÉTICA MÉDICA ───────────────────────────────────────────────────────────
+centro estética médica norte Mérida | 30
+centro estética médica centro Mérida | 30
+centro estética médica Valladolid Yucatán | 30
+
+# ── UÑAS Y NAIL ART ───────────────────────────────────────────────────────────
+nail art Mérida | 30
+manicure Mérida norte | 30
+manicure Mérida centro | 30

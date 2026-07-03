@@ -1,0 +1,78 @@
+# LIBERA Leads — Salud por zona
+# Formato: búsqueda | max_resultados
+# Correr: node batch.js queries-salud.txt
+# Después de cada tanda: node dedup.js --delete
+
+# ── DENTISTAS ─────────────────────────────────────────────────────────────────
+dentista norte Mérida | 80
+dentista sur Mérida | 80
+dentista centro Mérida | 80
+dentista oriente Mérida | 80
+dentista poniente Mérida | 80
+dentista Caucel Mérida | 60
+
+# ── MÉDICO GENERAL ────────────────────────────────────────────────────────────
+médico general norte Mérida | 80
+médico general sur Mérida | 80
+médico general centro Mérida | 80
+médico general oriente Mérida | 80
+médico general poniente Mérida | 80
+médico general Caucel Mérida | 60
+
+# ── NUTRICIONISTA ─────────────────────────────────────────────────────────────
+nutricionista norte Mérida | 60
+nutricionista sur Mérida | 60
+nutricionista centro Mérida | 60
+nutricionista oriente Mérida | 60
+nutricionista poniente Mérida | 60
+
+# ── FISIOTERAPISTA ────────────────────────────────────────────────────────────
+fisioterapista norte Mérida | 60
+fisioterapista sur Mérida | 60
+fisioterapista centro Mérida | 60
+fisioterapista oriente Mérida | 60
+fisioterapista poniente Mérida | 60
+
+# ── PEDIATRA ──────────────────────────────────────────────────────────────────
+pediatra norte Mérida | 60
+pediatra sur Mérida | 60
+pediatra centro Mérida | 60
+pediatra oriente Mérida | 60
+pediatra poniente Mérida | 60
+
+# ── GINECÓLOGO ────────────────────────────────────────────────────────────────
+ginecólogo norte Mérida | 60
+ginecólogo sur Mérida | 60
+ginecólogo centro Mérida | 60
+ginecólogo oriente Mérida | 60
+ginecólogo poniente Mérida | 60
+
+# ── DERMATÓLOGO ───────────────────────────────────────────────────────────────
+dermatólogo norte Mérida | 60
+dermatólogo sur Mérida | 60
+dermatólogo centro Mérida | 60
+dermatólogo oriente Mérida | 60
+
+# ── ORTODONCISTA ──────────────────────────────────────────────────────────────
+ortodoncista norte Mérida | 60
+ortodoncista sur Mérida | 60
+ortodoncista centro Mérida | 60
+ortodoncista oriente Mérida | 60
+
+# ── OFTALMÓLOGO ───────────────────────────────────────────────────────────────
+oftalmólogo norte Mérida | 60
+oftalmólogo sur Mérida | 60
+oftalmólogo centro Mérida | 60
+
+# ── PSIQUIATRA ────────────────────────────────────────────────────────────────
+psiquiatra Mérida Yucatán | 60
+
+# ── QUIROPRÁCTICO ─────────────────────────────────────────────────────────────
+quiropráctico Mérida Yucatán | 40
+
+# ── VETERINARIO ───────────────────────────────────────────────────────────────
+veterinario norte Mérida | 80
+veterinario sur Mérida | 80
+veterinario centro Mérida | 80
+veterinario oriente Mérida | 80
+veterinario poniente Mérida | 80

@@ -1,0 +1,39 @@
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.card {
+  background: #0C0B18;
+  border-radius: 12px;
+  padding: 24px;
+  border-top: 3px solid #1E1B30;
+}
+.card.orange { border-top-color: #E85220; }
+.card.green  { border-top-color: #22C55E; }
+.card.red    { border-top-color: #EF4444; }
+.card.blue   { border-top-color: #3B82F6; }
+
+.card .num { font-size: 40px; font-weight: 800; line-height: 1; color: #EDE9E1; }
+.card.orange .num { color: #E85220; }
+.card.green  .num { color: #22C55E; }
+.card.red    .num { color: #EF4444; }
+.card.blue   .num { color: #3B82F6; }
+
+.card .label { font-size: 13px; font-weight: 500; color: #65708F; margin-top: 8px; }
+
+.progress-bar {
+  background: #1E1B30;
+  border-radius: 100px;
+  height: 6px;
+  margin-top: 16px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: #E85220;
+  border-radius: 100px;
+  transition: width 0.5s;
+}

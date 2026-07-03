@@ -7,3 +7,13 @@ debug-place.png
 debug-screenshot.png
 *.png
 *.html
+
+# Datos sensibles (repo público — nunca subir)
+db/
+clientes/
+content-queue/
+emails/
+.vscode/
+
+# Excepción: logo del CRM
+!assets/logo-libera.png

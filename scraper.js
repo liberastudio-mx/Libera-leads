@@ -13,54 +13,124 @@ const QUERY       = process.argv[2] || 'psicólogos Mérida Yucatán';
 const MAX_RESULTS = parseInt(process.argv[3]) || 30;
 const OUT_DIR     = path.join(__dirname, 'output');
 
+const rnd = (min, max) => Math.floor(min + Math.random() * (max - min));
+
+const USER_AGENTS = [
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+];
+
 const AIRTABLE_TOKEN    = process.env.AIRTABLE_TOKEN;
 const AIRTABLE_BASE_ID  = process.env.AIRTABLE_BASE_ID;
 const AIRTABLE_TABLE_ID = process.env.AIRTABLE_TABLE_ID;
 
-// ── Airtable push (lotes de 10) ────────────────────────────────────────────
+// ── Generador de mensaje WhatsApp ─────────────────────────────────────────────
 
-async function pushToAirtable(records) {
-  if (!AIRTABLE_TOKEN) { console.log('Sin token de Airtable — solo CSV.'); return; }
+function generarMensaje(r) {
+  const nombre   = r.nombre || 'su negocio';
+  const tieneweb = r.sitio_web && !r.sitio_web.includes('facebook.com');
+  const resenas  = parseInt(r.resenas) || 0;
+  const calif    = parseFloat(r.calificacion) || 0;
 
-  const batches = [];
-  for (let i = 0; i < records.length; i += 10) batches.push(records.slice(i, i + 10));
+  // Construir observación natural (prosa, sin bullets)
+  let obs = '';
 
-  let pushed = 0;
-  for (const batch of batches) {
-    const body = {
-      records: batch.map(r => ({
-        fields: {
-          Name:         r.nombre,
-          telefono:     r.telefono,
-          email:        r.email,
-          sitio_web:    r.sitio_web,
-          direccion:    r.direccion,
-          calificacion: r.calificacion,
-          resenas:      r.resenas,
-          categoria:    r.categoria,
-          estado:       'Sin contactar',
-        },
-      })),
-    };
-
-    const res = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`,
-      {
-        method:  'POST',
-        headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify(body),
-      }
-    );
-
-    const json = await res.json();
-    if (res.ok) {
-      pushed += batch.length;
-    } else {
-      console.log(`Error Airtable: ${JSON.stringify(json.error)}`);
-    }
+  if (!tieneweb && resenas === 0) {
+    obs = `No tienen página web propia y tampoco reseñas en Maps, así que Google los pone muy abajo cuando alguien busca en Mérida.`;
+  } else if (!tieneweb && resenas < 15) {
+    obs = `No tienen página web propia y tienen pocas reseñas en Maps — con eso Google los muestra después de la competencia.`;
+  } else if (!tieneweb) {
+    obs = `No tienen página web propia. Sin eso, Google no sabe qué mostrar de ustedes y los pone después de negocios con sitio.`;
+  } else if (resenas === 0) {
+    obs = `No tienen reseñas en Google Maps. Eso hace que los clientes nuevos elijan primero a quien sí las tiene.`;
+  } else if (resenas < 15) {
+    obs = `Tienen ${resenas} reseña${resenas > 1 ? 's' : ''} en Google, que es poco para competir con otros en la zona. Google le da preferencia a quienes tienen más.`;
+  } else if (calif > 0 && calif < 4.0) {
+    obs = `Su calificación en Maps está en ${calif} estrellas. Hay formas de subirla sin pedir favores — y eso mueve posiciones.`;
+  } else {
+    obs = `Su sitio web no está configurado para búsquedas locales y su perfil de Maps no está completo, así que no aparecen entre los primeros resultados en Mérida.`;
   }
 
-  console.log(`Airtable: ${pushed}/${records.length} registros enviados`);
+  return `Hola, buenos días!
+
+Mi nombre es Alma. Encontré su número en Google Maps y vi que ${nombre} tiene buenas reseñas.
+
+${obs}
+
+Soy de LIBERA Studio, ayudamos a negocios locales con eso: liberastudio.tech
+
+¿Les comparto un diagnóstico rápido? Sin costo y sin compromiso.`;
+}
+
+// ── Generador de email en frío (formato skill email-en-frio) ──────────────────
+// Trigger event derivado de los datos scrapeados: web, reseñas, calificación.
+
+function generarEmailEnFrio(r) {
+  const nombre  = r.nombre  || 'su negocio';
+  const resenas = parseInt(r.resenas) || 0;
+  const tieneweb = r.sitio_web && !r.sitio_web.includes('facebook.com');
+
+  let subject, trigger;
+
+  if (!tieneweb) {
+    subject = `${nombre.split(' ')[0].toLowerCase()} no tiene sitio web`;
+    trigger = `Busqué ${nombre} en Google Maps y vi que no tienen sitio web — solo el perfil de Maps.`;
+  } else if (resenas > 0 && resenas < 15) {
+    subject = `${resenas} reseñas y hay más`;
+    trigger = `Vi que ${nombre} tiene ${resenas} reseñas en Google — hay algo puntual que puede cambiar eso esta semana.`;
+  } else if (resenas === 0) {
+    subject = `sin reseñas en google maps`;
+    trigger = `Busqué ${nombre} en Google Maps y vi que aún no tienen reseñas registradas.`;
+  } else {
+    subject = `vi algo en su perfil de maps`;
+    trigger = `Busqué ${r.categoria || 'negocios como el suyo'} en la zona y ${nombre} no aparece entre los primeros, aunque tienen buena calificación.`;
+  }
+
+  const linea2 = 'En LIBERA Studio ayudamos a negocios locales a aparecer primero cuando su cliente ideal los busca en Google.';
+  const ask    = '¿Te late una llamada de 15 minutos esta semana?';
+
+  return {
+    subject,
+    body: `${trigger}\n\n${linea2}\n\n${ask}\n\nAlma\nhola@liberastudio.tech`,
+  };
+}
+
+// ── DB push (SQLite local) ────────────────────────────────────────────────────
+
+const localDb = require('./db');
+
+function pushToAirtable(records) {
+  const enriched = records.map(r => ({
+    ...r,
+    Mensaje_Borrador: generarMensaje(r),
+    query_origen:     QUERY,
+  }));
+  const inserted = localDb.pushLeads(enriched);
+  console.log(`DB: ${inserted}/${records.length} registros nuevos guardados`);
+}
+
+// ── deduplicación entre corridas ──────────────────────────────────────────
+
+const SEEN_PATH = path.join(OUT_DIR, '_seen.json');
+
+function loadSeen() {
+  if (!fs.existsSync(SEEN_PATH)) return new Set();
+  try { return new Set(JSON.parse(fs.readFileSync(SEEN_PATH, 'utf8'))); }
+  catch (_) { return new Set(); }
+}
+
+function seenKey(r) {
+  const nombre = (r.nombre || '').toLowerCase().trim();
+  const tel    = (r.telefono || '').replace(/\D/g, '');
+  return tel ? `${nombre}|${tel}` : `${nombre}|${(r.direccion || '').toLowerCase().trim()}`;
+}
+
+function saveSeen(seen) {
+  if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR);
+  fs.writeFileSync(SEEN_PATH, JSON.stringify([...seen]), 'utf8');
 }
 
 // ── helpers ────────────────────────────────────────────────────────────────
@@ -89,20 +159,54 @@ function extractEmails(text) {
 
 async function scrapePlacePage(page, url) {
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 18000 });
-  await page.waitForTimeout(900);
+  await page.waitForTimeout(rnd(1500, 2500));
+
+  // Esperar a que cargue el teléfono (si existe)
+  await page.waitForSelector('a[href^="tel:"], [data-item-id^="phone:tel"]', { timeout: 4000 }).catch(() => {});
 
   return page.evaluate(() => {
     const nombre = document.querySelector('h1')?.textContent?.trim() || '';
 
     const categoria = document.querySelector('button[jsaction*="category"]')?.textContent?.trim() || '';
 
-    const ratingLabel = document.querySelector('[aria-label*="stars"], [aria-label*="estrellas"]')
-      ?.getAttribute('aria-label') || '';
+    // Calificación
+    const ratingEl    = document.querySelector('[aria-label*="stars"], [aria-label*="estrellas"], [aria-label*="Calificaci"]');
+    const ratingLabel = ratingEl?.getAttribute('aria-label') || '';
     const calificacion = ratingLabel.match(/[\d,.]+/)?.[0]?.replace(',', '.') || '';
-    const resenas      = ratingLabel.match(/(\d[\d,.]*)[\s ]*(reseña|review)/i)?.[1]?.replace(/\D/g, '') || '';
 
-    const telEl    = document.querySelector('a[href^="tel:"]');
-    const telefono = telEl ? telEl.href.replace('tel:', '').trim() : '';
+    // Reseñas — intenta en este orden:
+    let resenas = ratingLabel.match(/(\d[\d,.]*)[\s ]*(reseña|review)/i)?.[1]?.replace(/\D/g, '') || '';
+
+    if (!resenas) {
+      // Botón o link con aria-label que menciona reseñas
+      const resenasEl = document.querySelector(
+        'button[aria-label*="reseña"], a[aria-label*="reseña"], span[aria-label*="reseña"],' +
+        'button[aria-label*="review"], a[aria-label*="review"]'
+      );
+      const resenasLabel = resenasEl?.getAttribute('aria-label') || '';
+      const m = resenasLabel.match(/(\d[\d,.]*)/);
+      if (m) resenas = m[1].replace(/\D/g, '');
+    }
+
+    if (!resenas) {
+      // Texto visible tipo "(1,234)" cerca de la calificación
+      const main = document.querySelector('[role="main"]')?.textContent || '';
+      const m    = main.match(/\((\d[\d,.]+)\)/);
+      if (m) resenas = m[1].replace(/\D/g, '');
+    }
+
+    // Selector principal: link tel:
+    let telefono = '';
+    const telEl = document.querySelector('a[href^="tel:"]');
+    if (telEl) {
+      telefono = telEl.href.replace('tel:', '').trim();
+    } else {
+      // Selector alternativo: data-item-id con el número embebido
+      const phoneItem = document.querySelector('[data-item-id^="phone:tel:"]');
+      if (phoneItem) {
+        telefono = phoneItem.getAttribute('data-item-id').replace('phone:tel:', '').trim();
+      }
+    }
 
     const webEl     = document.querySelector('a[data-item-id="authority"]');
     const sitio_web = webEl?.href || '';
@@ -120,7 +224,7 @@ async function extractEmailFromWebsite(page, siteUrl) {
   if (!siteUrl) return '';
   try {
     await page.goto(siteUrl, { waitUntil: 'domcontentloaded', timeout: 14000 });
-    await page.waitForTimeout(700);
+    await page.waitForTimeout(rnd(500, 1100));
 
     let emails = extractEmails(await page.content());
     if (emails.length) return emails[0];
@@ -144,6 +248,33 @@ async function extractEmailFromWebsite(page, siteUrl) {
   return '';
 }
 
+// ── checkpoint (guarda progreso para retomar si se interrumpe) ────────────
+
+function checkpointPath(query) {
+  return path.join(OUT_DIR, `_checkpoint_${slugify(query)}.json`);
+}
+
+function loadCheckpoint(query) {
+  const cp = checkpointPath(query);
+  if (fs.existsSync(cp)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(cp, 'utf8'));
+      console.log(`\nCheckpoint encontrado: ${data.results.length} leads ya procesados, ${data.links.length - data.doneIndex} restantes.\n`);
+      return data;
+    } catch (_) {}
+  }
+  return null;
+}
+
+function saveCheckpoint(query, links, doneIndex, results) {
+  fs.writeFileSync(checkpointPath(query), JSON.stringify({ links, doneIndex, results }), 'utf8');
+}
+
+function clearCheckpoint(query) {
+  const cp = checkpointPath(query);
+  if (fs.existsSync(cp)) fs.unlinkSync(cp);
+}
+
 // ── main ───────────────────────────────────────────────────────────────────
 
 (async () => {
@@ -151,10 +282,10 @@ async function extractEmailFromWebsite(page, siteUrl) {
 
   console.log(`\nBuscando: "${QUERY}" — máx ${MAX_RESULTS} resultados\n`);
 
-  const browser = await chromium.launch({ headless: false, slowMo: 60 });
+  const browser = await chromium.launch({ headless: false, slowMo: rnd(50, 130) });
   const ctx     = await browser.newContext({
     locale:    'es-MX',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    userAgent: USER_AGENTS[rnd(0, USER_AGENTS.length)],
   });
   const page = await ctx.newPage();
 
@@ -183,8 +314,9 @@ async function extractEmailFromWebsite(page, siteUrl) {
   console.log('Cargando resultados...');
   let prevCount = 0;
   for (let i = 0; i < 25; i++) {
-    await page.locator('[role="feed"]').evaluate(el => el.scrollBy(0, 800));
-    await page.waitForTimeout(900);
+    const scrollPx = rnd(600, 1000);
+    await page.locator('[role="feed"]').evaluate((el, px) => el.scrollBy(0, px), scrollPx);
+    await page.waitForTimeout(rnd(800, 1600));
     const count = await page.$$eval(
       '[role="feed"] a[href*="/maps/place/"]',
       els => new Set(els.map(e => e.href)).size
@@ -193,21 +325,44 @@ async function extractEmailFromWebsite(page, siteUrl) {
     prevCount = count;
   }
 
-  // 3. Recolectar links
-  const links = await page.$$eval(
-    '[role="feed"] a[href*="/maps/place/"]',
-    (els, max) => [...new Set(els.map(e => e.href))].slice(0, max),
-    MAX_RESULTS
-  );
-  console.log(`Encontrados ${links.length} lugares. Extrayendo detalles...\n`);
+  // 3. Recolectar links (o retomar checkpoint)
+  const checkpoint = loadCheckpoint(QUERY);
+  let links, startIndex, results;
 
-  const results = [];
+  if (checkpoint) {
+    links      = checkpoint.links;
+    startIndex = checkpoint.doneIndex;
+    results    = checkpoint.results;
+    console.log(`Retomando desde el resultado #${startIndex + 1}...\n`);
+  } else {
+    links = await page.$$eval(
+      '[role="feed"] a[href*="/maps/place/"]',
+      (els, max) => [...new Set(els.map(e => e.href))].slice(0, max),
+      MAX_RESULTS
+    );
+    startIndex = 0;
+    results    = [];
+    console.log(`Encontrados ${links.length} lugares. Extrayendo detalles...\n`);
+    saveCheckpoint(QUERY, links, 0, []);
+  }
 
-  for (let i = 0; i < links.length; i++) {
+  const seen = loadSeen();
+  let skipped = 0;
+
+  for (let i = startIndex; i < links.length; i++) {
     try {
       // 4. Datos de Maps
       const data = await scrapePlacePage(page, links[i]);
-      if (!data.nombre) continue;
+      if (!data.nombre) { saveCheckpoint(QUERY, links, i + 1, results); continue; }
+
+      // Saltar duplicados
+      const key = seenKey(data);
+      if (seen.has(key)) {
+        console.log(`[${i+1}/${links.length}] DUPLICADO — ${data.nombre} (ya existe)`);
+        skipped++;
+        saveCheckpoint(QUERY, links, i + 1, results);
+        continue;
+      }
 
       // 5. Email desde sitio web
       let email = '';
@@ -220,11 +375,16 @@ async function extractEmailFromWebsite(page, siteUrl) {
       }
 
       results.push({ ...data, email });
+      seen.add(key);
+      saveCheckpoint(QUERY, links, i + 1, results);
 
     } catch (err) {
       console.log(`[${i+1}/${links.length}] Error: ${err.message}`);
+      saveCheckpoint(QUERY, links, i + 1, results);
     }
   }
+
+  if (skipped) console.log(`\n${skipped} duplicados omitidos.`);
 
   await browser.close();
 
@@ -233,6 +393,9 @@ async function extractEmailFromWebsite(page, siteUrl) {
   // 6. Guardar CSV
   const filename = `${slugify(QUERY)}_${Date.now()}.csv`;
   fs.writeFileSync(path.join(OUT_DIR, filename), '﻿' + toCsv(results), 'utf8');
+
+  clearCheckpoint(QUERY);
+  saveSeen(seen);
 
   // 7. Enviar a Airtable
   process.stdout.write('\nEnviando a Airtable...');

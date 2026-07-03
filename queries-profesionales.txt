@@ -1,0 +1,32 @@
+# LIBERA Leads — Servicios Profesionales por zona
+# Formato: búsqueda | max_resultados
+# Correr: node batch.js queries-profesionales.txt
+# Después: node dedup.js --delete
+# Zonas: Mérida (norte/centro/oriente) + alrededores + Valladolid
+
+# ── ABOGADOS ──────────────────────────────────────────────────────────────────
+abogado independiente Mérida | 30
+despacho jurídico norte Mérida | 30
+despacho jurídico centro Mérida | 30
+abogado Valladolid Yucatán | 30
+
+# ── CONTABILIDAD ──────────────────────────────────────────────────────────────
+despacho contable Mérida | 30
+contador independiente norte Mérida | 30
+contador independiente centro Mérida | 30
+
+# ── ARQUITECTURA E INTERIORISMO ───────────────────────────────────────────────
+arquitecto Mérida Yucatán | 30
+diseñador de interiores Mérida | 30
+diseñador de interiores norte Mérida | 30
+
+# ── FOTOGRAFÍA Y DISEÑO ───────────────────────────────────────────────────────
+fotógrafo profesional Mérida | 30
+fotógrafo profesional norte Mérida | 30
+estudio fotografía Mérida | 30
+
+# ── PSICÓLOGO ─────────────────────────────────────────────────────────────────
+psicólogo norte Mérida | 30
+psicólogo centro Mérida | 30
+psicólogo oriente Mérida | 30
+psicólogo Valladolid Yucatán | 30

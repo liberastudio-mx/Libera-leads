@@ -1,0 +1,32 @@
+# LIBERA Leads — Educación por zona
+# Formato: búsqueda | max_resultados
+# Correr: node batch.js queries-educacion.txt
+# Después: node dedup.js --delete
+# Zonas: Mérida (norte/centro/oriente) + alrededores + Valladolid
+
+# ── ACADEMIA DE IDIOMAS ───────────────────────────────────────────────────────
+academia idiomas norte Mérida | 60
+academia idiomas centro Mérida | 60
+academia idiomas oriente Mérida | 60
+academia idiomas Valladolid Yucatán | 40
+
+# ── MÚSICA Y ARTE ─────────────────────────────────────────────────────────────
+escuela música Mérida | 60
+academia arte norte Mérida | 40
+academia arte centro Mérida | 40
+
+# ── CLASES PARTICULARES / TUTORÍAS ───────────────────────────────────────────
+tutor clases particulares norte Mérida | 60
+tutor clases particulares centro Mérida | 60
+tutor clases particulares Valladolid Yucatán | 40
+
+# ── GUARDERÍA PRIVADA ─────────────────────────────────────────────────────────
+guardería privada norte Mérida | 60
+guardería privada centro Mérida | 60
+guardería privada oriente Mérida | 60
+guardería privada Valladolid Yucatán | 40
+
+# ── COLEGIO / PREPA PRIVADA ───────────────────────────────────────────────────
+colegio privado norte Mérida | 40
+colegio privado centro Mérida | 40
+prepa privada Mérida | 40

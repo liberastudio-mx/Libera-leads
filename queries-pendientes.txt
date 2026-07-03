@@ -1,0 +1,38 @@
+# Categorías pendientes — Gastronomía · Profesionales · Educación · Estética
+# 28 queries · ~1.5 hrs
+
+# ── GASTRONOMÍA ──────────────────────────────────────
+restaurante independiente norte Mérida | 80
+restaurante independiente sur Mérida | 80
+restaurante independiente centro Mérida | 80
+cafetería especialidad Mérida | 60
+catering Mérida | 40
+repostería pedidos Mérida | 40
+
+# ── SERVICIOS PROFESIONALES ──────────────────────────
+abogado independiente Mérida | 60
+despacho contable Mérida | 60
+arquitecto Mérida | 40
+diseñador de interiores Mérida | 40
+fotógrafo profesional Mérida | 60
+
+# ── EDUCACIÓN ────────────────────────────────────────
+academia idiomas norte Mérida | 60
+academia idiomas sur Mérida | 60
+academia idiomas centro Mérida | 60
+escuela música Mérida | 60
+academia arte Mérida | 40
+tutor clases particulares Mérida | 60
+guardería privada norte Mérida | 60
+guardería privada sur Mérida | 60
+guardería privada centro Mérida | 60
+
+# ── ESTÉTICA Y BELLEZA ───────────────────────────────
+salón de belleza norte Mérida | 80
+salón de belleza sur Mérida | 80
+salón de belleza centro Mérida | 80
+barbería norte Mérida | 60
+barbería sur Mérida | 60
+barbería centro Mérida | 60
+spa masajes Mérida | 60
+centro estética médica Mérida | 60

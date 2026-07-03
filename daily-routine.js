@@ -3,7 +3,7 @@ const { processInbox } = require('./process-inbox');
 const { generateContent } = require('./generate-content');
 const { postToInstagram } = require('./post-instagram');
 const { postRadarArticles } = require('./post-radar');
-const { postSocialContent } = require('./post-social');
+const { postVideoContent } = require('./post-videos');
 const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -43,30 +43,35 @@ function log(msg) {
     log(`ERROR en envío: ${err.message}`);
   }
 
-  // 3. Generar contenido del día (SOCIAL-CONTENT-STRATEGIST)
-  log('\n── Paso 3: Generando contenido (SOCIAL-CONTENT-STRATEGIST) ──');
+  // 3. Generar contenido del día y registrar en Airtable (publicación manual)
+  log('\n── Paso 3: Generando contenido del día (SOCIAL-CONTENT-STRATEGIST) ──');
   try {
     const content = await generateContent();
-    log(`✓ Contenido generado: "${content.headline}"`);
+    log(`✓ Contenido generado y registrado en Airtable: "${content.headline}"`);
   } catch (err) {
     log(`ERROR generando contenido: ${err.message}`);
   }
+  // Paso 4 (publicación automática) eliminado — se publica a mano desde Airtable
 
-  // 4. Publicar en Instagram (SOCIAL-MEDIA-MANAGER)
-  log('\n── Paso 4: Publicando en Instagram (SOCIAL-MEDIA-MANAGER) ──');
-  try {
-    const mediaId = await postToInstagram();
-    if (mediaId) log(`✓ Publicado — media_id: ${mediaId}`);
-  } catch (err) {
-    log(`ERROR publicando: ${err.message}`);
-  }
+  // ── PASO MANUAL antes de este paso ──────────────────────────────────────────
+  // Cuando publiques un artículo nuevo en liberastudio.tech/radar/:
+  //   1. Crea el registro en Airtable SMM → tabla Radar Articles (tbltjVkZ8oHowq4t1)
+  //      Campos mínimos: Article_Title, Source (URL completa), Publicado = TRUE
+  //   2. Agrega la imagen Preview (1080x1080) al registro
+  //   3. Recién entonces post-radar.js lo detecta y publica en IG + FB
+  // Sin este paso, el artículo queda publicado en el sitio pero invisible para redes.
+  // ────────────────────────────────────────────────────────────────────────────
 
   // 5. Publicar artículos del Radar en Instagram (SOCIAL-MEDIA-MANAGER)
   log('\n── Paso 5: Publicando Radar en Instagram (SOCIAL-MEDIA-MANAGER) ──');
   try {
     const radarResults = await postRadarArticles();
     if (radarResults.length > 0) {
-      radarResults.forEach(r => log(`✓ Radar publicado: "${r.title}" — media_id: ${r.mediaId}`));
+      radarResults.forEach(r => {
+        log(`Radar [${r.title}] IG: ${r.mediaId || '-'} FB: ${r.postId || '-'}`);
+        if (r.igError) log(`  ✗ Instagram error: ${r.igError}`);
+        if (r.fbError) log(`  ✗ Facebook error: ${r.fbError}`);
+      });
     } else {
       log('✓ Sin artículos Radar pendientes de publicar hoy.');
     }
@@ -74,17 +79,21 @@ function log(msg) {
     log(`ERROR en Radar Instagram: ${err.message}`);
   }
 
-  // 6. Publicar contenido social del día (SOCIAL-MEDIA-MANAGER)
-  log('\n── Paso 6: Publicando posts sociales (SOCIAL-MEDIA-MANAGER) ──');
+  // 7. Publicar videos/Reels del día (SOCIAL-MEDIA-MANAGER)
+  log('\n── Paso 7: Publicando videos/Reels (SOCIAL-MEDIA-MANAGER) ──');
   try {
-    const socialResults = await postSocialContent();
-    if (socialResults.length > 0) {
-      socialResults.forEach(r => log(`✓ Post publicado: [${r.postId}] IG: ${r.igMediaId || '-'} FB: ${r.fbPostId || '-'}`));
+    const videoResults = await postVideoContent();
+    if (videoResults.length > 0) {
+      videoResults.forEach(r => {
+        log(`Video [${r.videoId}] IG: ${r.igMediaId || '-'} FB: ${r.fbId || '-'}`);
+        if (r.igError) log(`  ✗ Instagram error: ${r.igError}`);
+        if (r.fbError) log(`  ✗ Facebook error: ${r.fbError}`);
+      });
     } else {
-      log('✓ Sin posts sociales pendientes hoy.');
+      log('✓ Sin videos pendientes hoy.');
     }
   } catch (err) {
-    log(`ERROR en posts sociales: ${err.message}`);
+    log(`ERROR en videos: ${err.message}`);
   }
 
   log('\n═══ Rutina completada ═══');
