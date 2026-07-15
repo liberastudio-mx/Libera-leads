@@ -1,0 +1,159 @@
+# LIBERA Leads — Mérida
+# Formato: búsqueda | max_resultados
+# Correr: node batch.js queries-merida.txt
+# Después: node dedup.js --delete
+# Zonas: Mérida (norte/centro/oriente) + alrededores (Progreso, Kanasín, Umán, Motul, Izamal) + Valladolid
+
+# ── SALUD ─────────────────────────────────────────────────────────────────────
+dentista norte Mérida | 80
+dentista centro Mérida | 80
+dentista oriente Mérida | 80
+dentista Progreso Yucatán | 60
+dentista Kanasín Yucatán | 60
+dentista Umán Yucatán | 40
+dentista Motul Yucatán | 40
+dentista Izamal Yucatán | 40
+dentista Valladolid Yucatán | 60
+médico general norte Mérida | 80
+médico general centro Mérida | 80
+médico general oriente Mérida | 80
+médico general Progreso Yucatán | 60
+médico general Kanasín Yucatán | 60
+médico general Valladolid Yucatán | 60
+nutricionista norte Mérida | 60
+nutricionista centro Mérida | 60
+nutricionista oriente Mérida | 60
+nutricionista Valladolid Yucatán | 40
+fisioterapista norte Mérida | 60
+fisioterapista centro Mérida | 60
+fisioterapista oriente Mérida | 60
+fisioterapista Valladolid Yucatán | 40
+pediatra norte Mérida | 60
+pediatra centro Mérida | 60
+pediatra oriente Mérida | 60
+pediatra Valladolid Yucatán | 40
+ginecólogo norte Mérida | 60
+ginecólogo centro Mérida | 60
+ginecólogo oriente Mérida | 60
+ginecólogo Valladolid Yucatán | 40
+dermatólogo norte Mérida | 60
+dermatólogo centro Mérida | 60
+dermatólogo oriente Mérida | 60
+dermatólogo Valladolid Yucatán | 40
+ortodoncista norte Mérida | 60
+ortodoncista centro Mérida | 60
+ortodoncista oriente Mérida | 60
+ortodoncista Valladolid Yucatán | 40
+oftalmólogo norte Mérida | 60
+oftalmólogo centro Mérida | 60
+oftalmólogo oriente Mérida | 40
+psiquiatra Mérida Yucatán | 60
+quiropráctico Mérida Yucatán | 40
+veterinario norte Mérida | 80
+veterinario centro Mérida | 80
+veterinario oriente Mérida | 80
+veterinario Progreso Yucatán | 40
+veterinario Valladolid Yucatán | 40
+veterinaria norte Mérida | 80
+veterinaria centro Mérida | 80
+veterinaria oriente Mérida | 80
+veterinaria Progreso Yucatán | 40
+veterinaria Valladolid Yucatán | 40
+
+# ── FITNESS ───────────────────────────────────────────────────────────────────
+gimnasio norte Mérida | 80
+gimnasio centro Mérida | 80
+gimnasio oriente Mérida | 80
+gimnasio Progreso Yucatán | 40
+gimnasio Valladolid Yucatán | 40
+entrenador personal norte Mérida | 60
+entrenador personal centro Mérida | 60
+entrenador personal oriente Mérida | 60
+entrenador personal Valladolid Yucatán | 40
+yoga norte Mérida | 60
+yoga centro Mérida | 60
+yoga Valladolid Yucatán | 40
+pilates norte Mérida | 60
+pilates centro Mérida | 60
+crossfit Mérida Yucatán | 80
+crossfit Valladolid Yucatán | 40
+boxeo Mérida Yucatán | 80
+natación Mérida Yucatán | 80
+spinning Mérida Yucatán | 60
+entrenamiento funcional Mérida Yucatán | 60
+HIIT Mérida Yucatán | 50
+
+# ── ESTÉTICA Y BELLEZA ────────────────────────────────────────────────────────
+salón de belleza norte Mérida | 30
+salón de belleza centro Mérida | 30
+salón de belleza oriente Mérida | 30
+salón de belleza Progreso Yucatán | 30
+salón de belleza Valladolid Yucatán | 30
+barbería norte Mérida | 30
+barbería centro Mérida | 30
+barbería oriente Mérida | 30
+barbería Valladolid Yucatán | 30
+spa masajes norte Mérida | 30
+spa masajes centro Mérida | 30
+spa masajes Valladolid Yucatán | 30
+centro estética médica norte Mérida | 30
+centro estética médica centro Mérida | 30
+centro estética médica Valladolid Yucatán | 30
+nail art Mérida | 30
+manicure Mérida norte | 30
+manicure Mérida centro | 30
+
+# ── EDUCACIÓN ─────────────────────────────────────────────────────────────────
+academia idiomas norte Mérida | 60
+academia idiomas centro Mérida | 60
+academia idiomas oriente Mérida | 60
+academia idiomas Valladolid Yucatán | 40
+escuela música Mérida | 60
+academia arte norte Mérida | 40
+academia arte centro Mérida | 40
+tutor clases particulares norte Mérida | 60
+tutor clases particulares centro Mérida | 60
+tutor clases particulares Valladolid Yucatán | 40
+guardería privada norte Mérida | 60
+guardería privada centro Mérida | 60
+guardería privada oriente Mérida | 60
+guardería privada Valladolid Yucatán | 40
+colegio privado norte Mérida | 40
+colegio privado centro Mérida | 40
+prepa privada Mérida | 40
+
+# ── PROFESIONALES ─────────────────────────────────────────────────────────────
+abogado independiente Mérida | 30
+despacho jurídico norte Mérida | 30
+despacho jurídico centro Mérida | 30
+abogado Valladolid Yucatán | 30
+despacho contable Mérida | 30
+contador independiente norte Mérida | 30
+contador independiente centro Mérida | 30
+arquitecto Mérida Yucatán | 30
+diseñador de interiores Mérida | 30
+diseñador de interiores norte Mérida | 30
+fotógrafo profesional Mérida | 30
+fotógrafo profesional norte Mérida | 30
+estudio fotografía Mérida | 30
+psicólogo norte Mérida | 30
+psicólogo centro Mérida | 30
+psicólogo oriente Mérida | 30
+psicólogo Valladolid Yucatán | 30
+
+# ── GASTRONOMÍA ──────────────────────────────────────────────────────────────
+restaurante independiente norte Mérida | 80
+restaurante independiente centro Mérida | 80
+restaurante independiente oriente Mérida | 80
+restaurante independiente Progreso Yucatán | 60
+restaurante independiente Valladolid Yucatán | 60
+cafetería especialidad norte Mérida | 60
+cafetería especialidad centro Mérida | 60
+cafetería especialidad Valladolid Yucatán | 40
+catering Mérida Yucatán | 40
+repostería pedidos Mérida | 40
+pastelería artesanal Mérida | 40
+food truck Mérida Yucatán | 40
+cocina oculta Mérida | 30
+marisquería Mérida norte | 60
+marisquería Progreso Yucatán | 60

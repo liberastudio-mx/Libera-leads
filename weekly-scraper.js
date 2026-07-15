@@ -10,14 +10,13 @@ const LEADS_POR_TANDA  = 20;
 const TANDAS_POR_DIA   = 3;
 const PAUSA_ENTRE_MS   = 20 * 60 * 1000; // 20 minutos
 
-// Bloques disponibles — uno por día en rotación
+// Ciudades disponibles — una por día en rotación, mismo peso para todas
 const BLOQUES = [
-  'queries-salud.txt',
-  'queries-fitness.txt',
-  'queries-estetica.txt',
-  'queries-educacion.txt',
-  'queries-profesionales.txt',
-  'queries-gastronomia.txt',
+  'queries-merida.txt',
+  'queries-cancun.txt',
+  'queries-playadelcarmen.txt',
+  'queries-tulum.txt',
+  'queries-tuxtla.txt',
 ];
 
 function log(msg) {
@@ -55,10 +54,10 @@ function leerQueries(filePath) {
   const queriesPath = path.join(__dirname, bloque);
 
   if (!fs.existsSync(queriesPath)) {
-    log(`⚠ Archivo no encontrado: ${bloque} — usando queries-salud.txt`);
+    log(`⚠ Archivo no encontrado: ${bloque} — usando queries-merida.txt`);
   }
 
-  const todasLasQueries = leerQueries(fs.existsSync(queriesPath) ? queriesPath : path.join(__dirname, 'queries-salud.txt'));
+  const todasLasQueries = leerQueries(fs.existsSync(queriesPath) ? queriesPath : path.join(__dirname, 'queries-merida.txt'));
 
   if (todasLasQueries.length === 0) {
     log('✗ No hay queries disponibles. Revisa el archivo de queries.');
@@ -74,7 +73,7 @@ function leerQueries(filePath) {
     queriesDeHoy.push(todasLasQueries[(startIdx + i) % todasLasQueries.length]);
   }
 
-  log(`Bloque: ${bloque}`);
+  log(`Ciudad de hoy: ${bloque}`);
   log(`Queries de hoy: ${queriesDeHoy.join(' | ')}`);
 
   let totalNuevos = 0;
