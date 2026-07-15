@@ -7,20 +7,15 @@ function tieneWeb(r) {
   return !!(r.sitio_web && !r.sitio_web.includes('facebook.com') && !r.sitio_web.includes('instagram.com'));
 }
 
-function tieneRedes(r) {
-  return !!(r.sitio_web && (r.sitio_web.includes('facebook.com') || r.sitio_web.includes('instagram.com')));
-}
-
 // ── Generador de mensaje WhatsApp ─────────────────────────────────────────────
 
 function generarMensaje(r, ciudad = 'su ciudad') {
   const nombre   = r.nombre || 'su negocio';
   const web      = tieneWeb(r);
-  const redes    = tieneRedes(r);
   const resenas  = parseInt(r.resenas) || 0;
   const calif    = parseFloat(r.calificacion) || 0;
 
-  if (!web && redes) {
+  if (!web) {
     return `Hola, buenos días.
 
 Soy Alma, de LIBERA Studio. Vi su perfil de ${nombre} en Google Maps y noté que tienen muy buenas reseñas.
@@ -34,16 +29,10 @@ Ayudamos a negocios locales a mejorar su presencia digital con página web, Goog
 liberastudio.tech`;
   }
 
-  // Construir observación natural (prosa, sin bullets)
+  // Construir observación natural (prosa, sin bullets) — solo aplica cuando sí tienen web propia
   let obs = '';
 
-  if (!web && resenas === 0) {
-    obs = `No tienen página web propia y tampoco reseñas en Maps, así que Google los pone muy abajo cuando alguien busca en ${ciudad}.`;
-  } else if (!web && resenas < 15) {
-    obs = `No tienen página web propia y tienen pocas reseñas en Maps — con eso Google los muestra después de la competencia.`;
-  } else if (!web) {
-    obs = `No tienen página web propia. Sin eso, Google no sabe qué mostrar de ustedes y los pone después de negocios con sitio.`;
-  } else if (resenas === 0) {
+  if (resenas === 0) {
     obs = `No tienen reseñas en Google Maps. Eso hace que los clientes nuevos elijan primero a quien sí las tiene.`;
   } else if (resenas < 15) {
     obs = `Tienen ${resenas} reseña${resenas > 1 ? 's' : ''} en Google, que es poco para competir con otros en la zona. Google le da preferencia a quienes tienen más.`;
@@ -97,4 +86,4 @@ function generarEmailEnFrio(r) {
   };
 }
 
-module.exports = { generarMensaje, generarEmailEnFrio, tieneWeb, tieneRedes };
+module.exports = { generarMensaje, generarEmailEnFrio, tieneWeb };
