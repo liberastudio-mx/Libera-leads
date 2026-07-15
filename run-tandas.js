@@ -92,5 +92,5 @@ function runDedup() {
 
   console.log('\n' + '═'.repeat(60));
   console.log('✓ Todas las tandas completadas.');
-  console.log('Revisa Airtable para ver todos los leads.\n');
+  console.log('Revisa el dashboard local para ver todos los leads.\n');
 })();

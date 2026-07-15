@@ -1,0 +1,67 @@
+# LIBERA Leads — Tuxtla Gutiérrez
+# Formato: búsqueda | max_resultados
+# Correr: node batch.js queries-tuxtla.txt
+# Después: node dedup.js --delete
+# Zonas: Norte, Centro, Oriente, Poniente, San Marcos, Terán
+
+# ── SALUD ─────────────────────────────────────────────────────────────────────
+dentista norte Tuxtla Gutiérrez | 80
+dentista centro Tuxtla Gutiérrez | 80
+dentista oriente Tuxtla Gutiérrez | 60
+dentista Tuxtla Gutiérrez Chiapas | 60
+médico general norte Tuxtla Gutiérrez | 60
+médico general centro Tuxtla Gutiérrez | 60
+nutricionista Tuxtla Gutiérrez | 60
+fisioterapista Tuxtla Gutiérrez | 60
+pediatra Tuxtla Gutiérrez | 60
+ginecólogo Tuxtla Gutiérrez | 60
+dermatólogo Tuxtla Gutiérrez | 60
+ortodoncista Tuxtla Gutiérrez | 60
+oftalmólogo Tuxtla Gutiérrez | 40
+psicólogo Tuxtla Gutiérrez | 40
+veterinario norte Tuxtla Gutiérrez | 60
+veterinario centro Tuxtla Gutiérrez | 60
+
+# ── ESTÉTICA Y BELLEZA ────────────────────────────────────────────────────────
+salón de belleza norte Tuxtla Gutiérrez | 60
+salón de belleza centro Tuxtla Gutiérrez | 60
+salón de belleza oriente Tuxtla Gutiérrez | 40
+barbería Tuxtla Gutiérrez | 60
+spa masajes Tuxtla Gutiérrez | 40
+centro estética médica Tuxtla Gutiérrez | 40
+nail art Tuxtla Gutiérrez | 40
+manicure Tuxtla Gutiérrez | 40
+
+# ── FITNESS ───────────────────────────────────────────────────────────────────
+gimnasio norte Tuxtla Gutiérrez | 80
+gimnasio centro Tuxtla Gutiérrez | 80
+entrenador personal Tuxtla Gutiérrez | 60
+yoga Tuxtla Gutiérrez | 60
+pilates Tuxtla Gutiérrez | 40
+crossfit Tuxtla Gutiérrez | 60
+boxeo Tuxtla Gutiérrez | 60
+natación Tuxtla Gutiérrez | 60
+
+# ── GASTRONOMÍA ──────────────────────────────────────────────────────────────
+restaurante independiente norte Tuxtla Gutiérrez | 80
+restaurante independiente centro Tuxtla Gutiérrez | 80
+cafetería especialidad Tuxtla Gutiérrez | 60
+catering Tuxtla Gutiérrez | 40
+repostería pedidos Tuxtla Gutiérrez | 40
+food truck Tuxtla Gutiérrez | 40
+
+# ── EDUCACIÓN ─────────────────────────────────────────────────────────────────
+academia idiomas Tuxtla Gutiérrez | 60
+escuela música Tuxtla Gutiérrez | 40
+tutor clases particulares Tuxtla Gutiérrez | 40
+guardería privada Tuxtla Gutiérrez | 60
+colegio privado Tuxtla Gutiérrez | 40
+prepa privada Tuxtla Gutiérrez | 40
+
+# ── PROFESIONALES ─────────────────────────────────────────────────────────────
+abogado Tuxtla Gutiérrez | 40
+despacho contable Tuxtla Gutiérrez | 40
+arquitecto Tuxtla Gutiérrez | 40
+fotógrafo profesional Tuxtla Gutiérrez | 40
+diseñador de interiores Tuxtla Gutiérrez | 30
+psicólogo centro Tuxtla Gutiérrez | 30

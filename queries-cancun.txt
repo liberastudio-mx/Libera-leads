@@ -1,0 +1,69 @@
+# LIBERA Leads — Cancún
+# Formato: búsqueda | max_resultados
+# Correr: node batch.js queries-cancun.txt
+# Después: node dedup.js --delete
+# Zonas: Centro, Norte, SM (Supermanzanas), Zona Hotelera, Puerto Morelos
+
+# ── SALUD ─────────────────────────────────────────────────────────────────────
+dentista centro Cancún | 80
+dentista norte Cancún | 80
+dentista Cancún Quintana Roo | 80
+médico general centro Cancún | 60
+médico general norte Cancún | 60
+nutricionista Cancún | 60
+fisioterapista Cancún | 60
+pediatra Cancún | 60
+ginecólogo Cancún | 60
+dermatólogo Cancún | 60
+ortodoncista Cancún | 60
+oftalmólogo Cancún | 40
+psicólogo Cancún | 40
+veterinario centro Cancún | 60
+veterinario norte Cancún | 60
+dentista Puerto Morelos | 40
+médico general Puerto Morelos | 40
+
+# ── ESTÉTICA Y BELLEZA ────────────────────────────────────────────────────────
+salón de belleza centro Cancún | 60
+salón de belleza norte Cancún | 60
+salón de belleza Zona Hotelera Cancún | 40
+barbería Cancún | 60
+spa masajes Cancún | 60
+spa masajes Zona Hotelera Cancún | 60
+centro estética médica Cancún | 40
+nail art Cancún | 40
+manicure Cancún | 40
+
+# ── FITNESS ───────────────────────────────────────────────────────────────────
+gimnasio centro Cancún | 80
+gimnasio norte Cancún | 80
+entrenador personal Cancún | 60
+yoga Cancún | 60
+pilates Cancún | 60
+crossfit Cancún | 60
+boxeo Cancún | 60
+natación Cancún | 60
+
+# ── GASTRONOMÍA ──────────────────────────────────────────────────────────────
+restaurante independiente centro Cancún | 80
+restaurante independiente norte Cancún | 80
+cafetería especialidad Cancún | 60
+catering Cancún | 40
+repostería pedidos Cancún | 40
+food truck Cancún | 40
+marisquería Cancún | 60
+
+# ── EDUCACIÓN ─────────────────────────────────────────────────────────────────
+academia idiomas Cancún | 60
+escuela música Cancún | 40
+tutor clases particulares Cancún | 40
+guardería privada Cancún | 60
+colegio privado Cancún | 40
+
+# ── PROFESIONALES ─────────────────────────────────────────────────────────────
+abogado Cancún | 40
+despacho contable Cancún | 40
+arquitecto Cancún | 40
+fotógrafo profesional Cancún | 40
+psicólogo Cancún centro | 40
+diseñador de interiores Cancún | 30

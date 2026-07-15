@@ -1,0 +1,44 @@
+# LIBERA Leads — Tulum
+# Formato: búsqueda | max_resultados
+# Correr: node batch.js queries-tulum.txt
+# Después: node dedup.js --delete
+# Zonas: Tulum pueblo, Tulum zona hotelera
+# Nota: mercado chico — max_resultados conservadores
+
+# ── SALUD ─────────────────────────────────────────────────────────────────────
+dentista Tulum Quintana Roo | 40
+médico general Tulum | 30
+nutricionista Tulum | 30
+fisioterapista Tulum | 30
+psicólogo Tulum | 30
+veterinario Tulum | 30
+
+# ── ESTÉTICA Y BELLEZA ────────────────────────────────────────────────────────
+salón de belleza Tulum | 40
+barbería Tulum | 30
+spa masajes Tulum | 60
+spa masajes zona hotelera Tulum | 60
+centro estética médica Tulum | 30
+nail art Tulum | 30
+
+# ── FITNESS ───────────────────────────────────────────────────────────────────
+gimnasio Tulum | 40
+yoga Tulum | 60
+yoga zona hotelera Tulum | 60
+pilates Tulum | 40
+entrenador personal Tulum | 30
+natación Tulum | 30
+
+# ── GASTRONOMÍA ──────────────────────────────────────────────────────────────
+restaurante independiente Tulum pueblo | 60
+restaurante independiente Tulum | 60
+cafetería especialidad Tulum | 40
+food truck Tulum | 30
+marisquería Tulum | 30
+
+# ── PROFESIONALES ─────────────────────────────────────────────────────────────
+fotógrafo profesional Tulum | 40
+fotógrafo bodas Tulum | 40
+arquitecto Tulum | 30
+diseñador de interiores Tulum | 30
+abogado Tulum | 20

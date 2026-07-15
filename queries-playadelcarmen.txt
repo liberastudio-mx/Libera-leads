@@ -1,0 +1,58 @@
+# LIBERA Leads — Playa del Carmen
+# Formato: búsqueda | max_resultados
+# Correr: node batch.js queries-playadelcarmen.txt
+# Después: node dedup.js --delete
+# Zonas: Centro, Norte, Sur, Colosio, Ejidal, Mayakobá
+
+# ── SALUD ─────────────────────────────────────────────────────────────────────
+dentista Playa del Carmen | 80
+dentista centro Playa del Carmen | 60
+médico general Playa del Carmen | 60
+nutricionista Playa del Carmen | 40
+fisioterapista Playa del Carmen | 40
+pediatra Playa del Carmen | 40
+ginecólogo Playa del Carmen | 40
+dermatólogo Playa del Carmen | 40
+ortodoncista Playa del Carmen | 40
+oftalmólogo Playa del Carmen | 30
+psicólogo Playa del Carmen | 30
+veterinario Playa del Carmen | 60
+
+# ── ESTÉTICA Y BELLEZA ────────────────────────────────────────────────────────
+salón de belleza Playa del Carmen | 60
+salón de belleza centro Playa del Carmen | 40
+barbería Playa del Carmen | 40
+spa masajes Playa del Carmen | 60
+centro estética médica Playa del Carmen | 40
+nail art Playa del Carmen | 30
+manicure Playa del Carmen | 30
+
+# ── FITNESS ───────────────────────────────────────────────────────────────────
+gimnasio Playa del Carmen | 60
+entrenador personal Playa del Carmen | 40
+yoga Playa del Carmen | 60
+pilates Playa del Carmen | 40
+crossfit Playa del Carmen | 40
+natación Playa del Carmen | 40
+
+# ── GASTRONOMÍA ──────────────────────────────────────────────────────────────
+restaurante independiente Playa del Carmen | 80
+restaurante independiente centro Playa del Carmen | 60
+cafetería especialidad Playa del Carmen | 60
+catering Playa del Carmen | 30
+repostería pedidos Playa del Carmen | 30
+marisquería Playa del Carmen | 40
+
+# ── EDUCACIÓN ─────────────────────────────────────────────────────────────────
+academia idiomas Playa del Carmen | 40
+escuela música Playa del Carmen | 30
+tutor clases particulares Playa del Carmen | 30
+guardería privada Playa del Carmen | 40
+colegio privado Playa del Carmen | 30
+
+# ── PROFESIONALES ─────────────────────────────────────────────────────────────
+abogado Playa del Carmen | 30
+despacho contable Playa del Carmen | 30
+arquitecto Playa del Carmen | 30
+fotógrafo profesional Playa del Carmen | 30
+diseñador de interiores Playa del Carmen | 30

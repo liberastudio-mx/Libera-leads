@@ -77,19 +77,24 @@ function leerQueries(filePath) {
   log(`Bloque: ${bloque}`);
   log(`Queries de hoy: ${queriesDeHoy.join(' | ')}`);
 
-  let totalEnviados = 0;
+  let totalNuevos = 0;
 
   for (let t = 0; t < queriesDeHoy.length; t++) {
     const query = queriesDeHoy[t];
     log(`\n── Tanda ${t + 1}/${TANDAS_POR_DIA}: "${query}" (máx ${LEADS_POR_TANDA}) ──`);
 
     try {
-      execSync(
+      const out = execSync(
         `node "${path.join(__dirname, 'scraper.js')}" "${query}" ${LEADS_POR_TANDA}`,
-        { stdio: 'inherit', cwd: __dirname }
+        { cwd: __dirname, encoding: 'utf8' }
       );
-      totalEnviados += LEADS_POR_TANDA;
-      log(`✓ Tanda ${t + 1} completada`);
+      process.stdout.write(out);
+      // El scraper reporta "CRM: N leads nuevos guardados"
+      const nuevos = parseInt(out.match(/CRM: (\d+) leads nuevos/)?.[1] || '0');
+      totalNuevos += nuevos;
+      log(nuevos > 0
+        ? `✓ Tanda ${t + 1}: ${nuevos} leads nuevos al CRM`
+        : `⚠ Tanda ${t + 1}: 0 leads nuevos (duplicados o sin resultados)`);
     } catch (err) {
       log(`✗ Error en tanda ${t + 1}: ${err.message}`);
     }
@@ -112,5 +117,5 @@ function leerQueries(filePath) {
     log(`✗ Error en dedup: ${err.message}`);
   }
 
-  log(`\n═══ Scraper finalizado — ~${totalEnviados} leads procesados ═══`);
+  log(`\n═══ Scraper finalizado — ${totalNuevos} leads nuevos en el CRM ═══`);
 })();
