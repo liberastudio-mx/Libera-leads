@@ -13,6 +13,19 @@ const QUERY       = process.argv[2] || 'psicólogos Mérida Yucatán';
 const MAX_RESULTS = parseInt(process.argv[3]) || 30;
 const OUT_DIR     = path.join(__dirname, 'output');
 
+const ZONA_WORDS = new Set(['norte', 'sur', 'oriente', 'poniente', 'centro', 'de', 'del', 'la', 'las', 'los', 'el', 'zona', 'hotelera', 'pueblo']);
+const CIUDAD_COMPUESTA = ['Playa del Carmen', 'Tuxtla Gutiérrez', 'San Cristóbal', 'Puerto Morelos', 'Puerto Vallarta', 'San Luis Potosí'];
+function extractCiudad(query) {
+  for (const c of CIUDAD_COMPUESTA) {
+    if (query.toLowerCase().includes(c.toLowerCase())) return c;
+  }
+  for (const w of query.split(/\s+/)) {
+    if (/^[A-ZÁÉÍÓÚÜÑ]/.test(w) && !ZONA_WORDS.has(w.toLowerCase())) return w;
+  }
+  return 'su ciudad';
+}
+const CIUDAD = extractCiudad(QUERY);
+
 const rnd = (min, max) => Math.floor(min + Math.random() * (max - min));
 
 const USER_AGENTS = [
@@ -23,23 +36,34 @@ const USER_AGENTS = [
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
 ];
 
-const AIRTABLE_TOKEN    = process.env.AIRTABLE_TOKEN;
-const AIRTABLE_BASE_ID  = process.env.AIRTABLE_BASE_ID;
-const AIRTABLE_TABLE_ID = process.env.AIRTABLE_TABLE_ID;
-
 // ── Generador de mensaje WhatsApp ─────────────────────────────────────────────
 
-function generarMensaje(r) {
-  const nombre   = r.nombre || 'su negocio';
-  const tieneweb = r.sitio_web && !r.sitio_web.includes('facebook.com');
-  const resenas  = parseInt(r.resenas) || 0;
-  const calif    = parseFloat(r.calificacion) || 0;
+function generarMensaje(r, ciudad = CIUDAD) {
+  const nombre    = r.nombre || 'su negocio';
+  const tieneweb  = r.sitio_web && !r.sitio_web.includes('facebook.com') && !r.sitio_web.includes('instagram.com');
+  const tieneRedes = r.sitio_web && (r.sitio_web.includes('facebook.com') || r.sitio_web.includes('instagram.com'));
+  const resenas   = parseInt(r.resenas) || 0;
+  const calif     = parseFloat(r.calificacion) || 0;
+
+  if (!tieneweb && tieneRedes) {
+    return `Hola, buenos días.
+
+Soy Alma, de LIBERA Studio. Vi su perfil de ${nombre} en Google Maps y noté que tienen muy buenas reseñas.
+
+También vi que no aparece una página web propia vinculada al negocio, y eso puede limitar la confianza y la información que encuentran nuevos clientes.
+
+Ayudamos a negocios locales a mejorar su presencia digital con página web, Google Business y WhatsApp.
+
+¿Les puedo compartir un diagnóstico rápido sin costo ni compromiso?
+
+liberastudio.tech`;
+  }
 
   // Construir observación natural (prosa, sin bullets)
   let obs = '';
 
   if (!tieneweb && resenas === 0) {
-    obs = `No tienen página web propia y tampoco reseñas en Maps, así que Google los pone muy abajo cuando alguien busca en Mérida.`;
+    obs = `No tienen página web propia y tampoco reseñas en Maps, así que Google los pone muy abajo cuando alguien busca en ${ciudad}.`;
   } else if (!tieneweb && resenas < 15) {
     obs = `No tienen página web propia y tienen pocas reseñas en Maps — con eso Google los muestra después de la competencia.`;
   } else if (!tieneweb) {
@@ -51,7 +75,7 @@ function generarMensaje(r) {
   } else if (calif > 0 && calif < 4.0) {
     obs = `Su calificación en Maps está en ${calif} estrellas. Hay formas de subirla sin pedir favores — y eso mueve posiciones.`;
   } else {
-    obs = `Su sitio web no está configurado para búsquedas locales y su perfil de Maps no está completo, así que no aparecen entre los primeros resultados en Mérida.`;
+    obs = `Su sitio web no está configurado para búsquedas locales y su perfil de Maps no está completo, así que no aparecen entre los primeros resultados en ${ciudad}.`;
   }
 
   return `Hola, buenos días!
@@ -98,18 +122,25 @@ function generarEmailEnFrio(r) {
   };
 }
 
-// ── DB push (SQLite local) ────────────────────────────────────────────────────
+// ── CRM push (SQLite local — db/leads.db, el mismo que ve el dashboard) ───────
 
 const localDb = require('./db');
 
-function pushToAirtable(records) {
-  const enriched = records.map(r => ({
-    ...r,
-    Mensaje_Borrador: generarMensaje(r),
-    query_origen:     QUERY,
-  }));
+function pushToCrm(records) {
+  const enriched = records.map(r => {
+    const email = generarEmailEnFrio(r);
+    return {
+      ...r,
+      Mensaje_Borrador: generarMensaje(r),
+      Email_Subject:    email.subject,
+      Email_Body:       email.body,
+      query_origen:     QUERY,
+      ciudad:           CIUDAD,
+    };
+  });
   const inserted = localDb.pushLeads(enriched);
-  console.log(`DB: ${inserted}/${records.length} registros nuevos guardados`);
+  console.log(`CRM: ${inserted} leads nuevos guardados (${records.length - inserted} ya existían)`);
+  return inserted;
 }
 
 // ── deduplicación entre corridas ──────────────────────────────────────────
@@ -388,7 +419,10 @@ function clearCheckpoint(query) {
 
   await browser.close();
 
-  if (!results.length) { console.log('\nNo se obtuvieron resultados.'); return; }
+  if (!results.length) {
+    console.log(`\n⚠ 0 leads nuevos para "${QUERY}" — ${skipped ? `los ${skipped} resultados ya estaban en el CRM (duplicados)` : 'la búsqueda no arrojó resultados'}.`);
+    return;
+  }
 
   // 6. Guardar CSV
   const filename = `${slugify(QUERY)}_${Date.now()}.csv`;
@@ -397,9 +431,9 @@ function clearCheckpoint(query) {
   clearCheckpoint(QUERY);
   saveSeen(seen);
 
-  // 7. Enviar a Airtable
-  process.stdout.write('\nEnviando a Airtable...');
-  await pushToAirtable(results);
+  // 7. Guardar en el CRM
+  console.log('\nGuardando en el CRM...');
+  pushToCrm(results);
 
   // 8. Resumen
   const sinWeb   = results.filter(r => !r.sitio_web).length;

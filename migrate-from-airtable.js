@@ -47,9 +47,9 @@ function mapEstado(val) {
   const s = Array.isArray(val) ? val[0] : val;
   const map = {
     'Sin contactar':  'Sin contactar',
-    'Contactado':     'Email enviado',
-    'Email enviado':  'Email enviado',
-    'WA enviado':     'WA enviado',
+    'Contactado':     'Contactado por Email',
+    'Email enviado':  'Contactado por Email',
+    'WA enviado':     'Contactado por WhatsApp',
     'Respondió':      'Respondió',
     'Respondio':      'Respondió',
     'Cerrado':        'Cerrado',

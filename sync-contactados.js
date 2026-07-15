@@ -20,10 +20,12 @@ if (!TOKEN || !BASE_ID || !TABLE_ID) {
 }
 
 // Si el lead sigue "Sin contactar" en SQLite pero Airtable dice que ya se contactó
-// por Email o WhatsApp, actualizamos también el estado del pipeline.
+// por alguno de los canales, actualizamos también el estado del pipeline.
 const CANAL_A_ESTADO = {
-  'Email':    'Email enviado',
-  'WhatsApp': 'WA enviado',
+  'Email':     'Contactado por Email',
+  'WhatsApp':  'Contactado por WhatsApp',
+  'Instagram': 'Contactado por Instagram',
+  'FaceBook':  'Contactado por FaceBook',
 };
 
 async function fetchAll() {

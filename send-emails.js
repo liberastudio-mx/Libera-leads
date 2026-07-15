@@ -141,9 +141,9 @@ function sleep(ms) {
       templateName = 'email-en-frio';
     } else {
       templateName = getEmailTemplate(categoria);
-      subject      = '50% durante junio, aprovecha!';
+      subject      = '50% durante julio, aprovecha!';
       html         = loadTemplate(templateName).replace(/\{\{Nombre\}\}/g, nombre);
-      text         = `Hola, ${nombre}.\n\nEl 97% de sus pacientes busca su consultorio en internet antes de llamar. ¿Qué encuentran cuando lo buscan?\n\nEn LIBERA Studio construimos la presencia digital que su consultorio merece: sitio web que convierte, Google Business optimizado, WhatsApp automatizado y 1 mes de soporte.\n\nPromo de lanzamiento: 50% de descuento. Válido para los primeros 10 consultorios antes del 30 de junio de 2026.\n\nPrimera sesión de diagnóstico gratis:\nhttps://wa.me/524152197945?text=Hola%2C%20me%20interesa%20la%20promo%20de%20junio%20de%20LIBERA%20Studio\n\n—\nLIBERA Studio · Mérida, Yucatán\nhola@liberastudio.tech · liberastudio.tech`;
+      text         = `Hola, ${nombre}.\n\nEl 97% de sus pacientes busca su consultorio en internet antes de llamar. ¿Qué encuentran cuando lo buscan?\n\nEn LIBERA Studio construimos la presencia digital que su consultorio merece: sitio web que convierte, Google Business optimizado, WhatsApp automatizado y 1 mes de soporte.\n\nPromo de lanzamiento: 50% de descuento. Válido para los primeros 10 consultorios antes del 31 de julio de 2026.\n\nPrimera sesión de diagnóstico gratis:\nhttps://wa.me/524152197945?text=Hola%2C%20me%20interesa%20la%20promo%20de%20julio%20de%20LIBERA%20Studio\n\n—\nLIBERA Studio · Mérida, Yucatán\nhola@liberastudio.tech · liberastudio.tech`;
     }
 
     try {
@@ -159,7 +159,7 @@ function sleep(ms) {
         },
       });
 
-      updateEstado(record.id, 'Email enviado');
+      updateEstado(record.id, 'Contactado por Email');
       console.log(`  ✓ [${templateName}] "${subject.slice(0, 40)}" → ${nombre} <${email}>`);
       sent++;
     } catch (err) {
