@@ -24,9 +24,10 @@ const LINKS   = ['Web propia', 'Facebook', 'Instagram', 'TikTok', 'WhatsApp', 'L
 const PRIORIDADES = ['Alta', 'Media', 'Baja'];
 
 function parseFilters(query) {
-  const { estado, canal, q, link, email, categoria, ciudad, prioridad, seguimiento, etiqueta, orden } = query;
+  const { estado, actividad, canal, q, link, email, categoria, ciudad, prioridad, seguimiento, etiqueta, orden } = query;
   return {
     estado:      estado    || undefined,
+    actividad:   actividad || undefined,
     canal:       canal     || undefined,
     q:           q         || undefined,
     tipo_link:   link      || undefined,
@@ -117,6 +118,7 @@ function html(stats) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LIBERA CRM</title>
+<meta name="description" content="Bandeja comercial de LIBERA para segmentar leads y dar seguimiento a próximas acciones.">
 <style>
 :root {
   --void: #f6f3ec; --surface: #ffffff;
@@ -126,7 +128,7 @@ function html(stats) {
   --green: #16a34a; --yellow: #b45309; --red: #d62828; --blue: #2563eb;
   --wa: #1fa855; --ig: #d62e6e; --fb: #1877f2; --tt: #1a1a1a; --lt: #3ba227;
   --radius: 8px; --radius-lg: 12px;
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font: "Aptos", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
   --ease: cubic-bezier(0.25, 1, 0.5, 1);
   --shadow-sm: 0 1px 2px rgba(0,48,73,0.05);
@@ -139,15 +141,16 @@ a { color: var(--fire-dark); text-decoration: none; }
 button { font-family: var(--font); }
 :focus-visible { outline: 2px solid var(--fire); outline-offset: 2px; border-radius: 4px; }
 
-/* ── Layout: sidebar fija + main con scroll propio ── */
-.layout { display: grid; grid-template-columns: 232px 1fr; height: 100vh; }
-.sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 20px 14px 24px; overflow-y: auto; }
-.main { display: flex; flex-direction: column; padding: 20px 28px 16px; overflow: hidden; min-width: 0; }
+/* ── Layout: cabecera de marca + bandeja operativa ── */
+.layout { display: flex; flex-direction: column; height: 100dvh; }
+.sidebar { height: 68px; flex: 0 0 68px; background: rgba(255,255,255,.92); border-bottom: 1px solid var(--border); padding: 0 30px; display: flex; align-items: center; backdrop-filter: blur(14px); }
+.sidebar .nav-label, .sidebar .filter-btn { display: none; }
+.main { display: flex; flex-direction: column; width: min(100%, 1600px); margin: 0 auto; padding: 24px 30px 18px; overflow: hidden; min-width: 0; flex: 1; }
 
 /* ── Sidebar ── */
-.brand { margin: 2px 4px 6px; }
-.brand img { width: 132px; height: auto; display: block; }
-.brand small { display: block; margin-top: 5px; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--od3); font-weight: 700; }
+.brand { display: flex; align-items: center; gap: 14px; margin: 0; }
+.brand img { width: 142px; height: auto; display: block; }
+.brand small { display: block; border-left: 1px solid var(--border-strong); padding-left: 14px; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--od3); font-weight: 750; }
 .nav-label { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--od3); margin: 18px 4px 4px; font-weight: 600; }
 .filter-btn { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 6px 10px; border-radius: var(--radius); border: none; background: transparent; color: var(--od2); cursor: pointer; font-size: 13px; transition: background .12s var(--ease), color .12s var(--ease); text-align: left; }
 .filter-btn:hover { background: rgba(0,48,73,0.05); color: var(--od); }
@@ -157,22 +160,29 @@ button { font-family: var(--font); }
 .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 7px; vertical-align: middle; flex-shrink: 0; }
 
 /* ── Encabezado del main ── */
-.page-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
-.page-head h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 18px; flex-wrap: wrap; }
+.page-head h1 { font-size: clamp(24px, 2.3vw, 34px); font-weight: 720; letter-spacing: -0.045em; line-height: 1; }
+.page-head .eyebrow { color: var(--fire-dark); font-size: 10px; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 8px; }
 .page-head .sub { font-size: 13px; color: var(--od3); font-variant-numeric: tabular-nums; }
 .head-actions { display: flex; gap: 8px; }
 
+.view-tabs { display: flex; align-items: center; gap: 3px; margin-bottom: 16px; padding: 4px; width: fit-content; background: rgba(0,48,73,.055); border-radius: 10px; }
+.view-tab { border: 0; background: transparent; color: var(--od2); padding: 7px 12px; border-radius: 7px; cursor: pointer; font: 600 12px/1 var(--font); transition: background .15s var(--ease), color .15s var(--ease), box-shadow .15s var(--ease); }
+.view-tab:hover { color: var(--od); }
+.view-tab.active { background: var(--surface); color: var(--od); box-shadow: 0 1px 3px rgba(0,48,73,.10); }
+
 /* ── Stats ── */
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
-.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px 14px; box-shadow: var(--shadow-sm); }
+.stats { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 8px; margin-bottom: 18px; }
+.stat-card { background: transparent; border: 0; border-left: 1px solid var(--border); border-radius: 0; padding: 9px 16px; box-shadow: none; }
+.stat-card:first-child { border-left: 0; padding-left: 0; }
 .stat-card.actionable { cursor: pointer; text-align: left; font-family: var(--font); color: var(--od); transition: transform .15s var(--ease), border-color .15s var(--ease), box-shadow .15s var(--ease); }
-.stat-card.actionable:hover { transform: translateY(-1px); border-color: rgba(247,127,0,.30); box-shadow: var(--shadow-md); }
+.stat-card.actionable:hover { transform: translateY(-1px); background: rgba(255,255,255,.65); border-color: var(--border); box-shadow: none; }
 .stat-card.actionable:active { transform: translateY(0); }
-.stat-num { font-size: 24px; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.stat-num { font-size: 26px; font-weight: 700; letter-spacing: -0.045em; font-variant-numeric: tabular-nums; line-height: 1.05; }
 .stat-lbl { font-size: 10.5px; color: var(--od3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 3px; font-weight: 600; }
 
 /* ── Toolbar ── */
-.toolbar { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; flex-wrap: wrap; }
+.toolbar { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
 .search-wrap { flex: 1; min-width: 220px; position: relative; }
 .search-wrap .kbd { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); font-size: 10px; font-family: var(--mono); color: var(--od3); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; background: var(--void); pointer-events: none; }
 .search { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 34px 8px 12px; color: var(--od); font-size: 13px; font-family: var(--font); transition: border-color .12s var(--ease); }
@@ -180,6 +190,14 @@ button { font-family: var(--font); }
 .search:focus { outline: none; border-color: var(--fire); box-shadow: 0 0 0 3px rgba(247,127,0,0.12); }
 .toolbar select { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; color: var(--od2); font-size: 13px; max-width: 230px; font-family: var(--font); }
 .toolbar select:focus { outline: none; border-color: var(--fire); }
+.filter-toggle { white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; }
+.filter-count { display: none; min-width: 18px; height: 18px; place-items: center; background: var(--fire); color: #fff; border-radius: 5px; font: 700 10px/1 var(--mono); }
+.filter-count.visible { display: inline-grid; }
+.filter-panel { display: none; grid-template-columns: repeat(4, minmax(150px, 1fr)); gap: 8px; padding: 12px; margin: 0 0 10px; background: rgba(255,255,255,.72); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.filter-panel.open { display: grid; }
+.filter-panel select { min-width: 0; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; color: var(--od2); font: 12px var(--font); }
+.filter-panel select:focus { outline: none; border-color: var(--fire); }
+.filter-panel .segment-bar { grid-column: 1 / -1; margin: 4px 0 0; padding-top: 10px; border-top: 1px solid var(--border); }
 .segment-bar { display: flex; gap: 8px; margin: -2px 0 10px; align-items: center; flex-wrap: wrap; }
 .segment-bar select, .segment-bar input { background: transparent; border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 9px; color: var(--od2); font-size: 12px; font-family: var(--font); }
 .segment-bar select { min-width: 190px; }
@@ -203,15 +221,18 @@ button { font-family: var(--font); }
 .chip.clear button { color: var(--od3); font-size: 12px; }
 
 /* ── Tabla: header pegajoso, scroll propio ── */
-.table-wrap { flex: 1; min-height: 0; overflow: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); transition: opacity .15s var(--ease); }
+.table-wrap { flex: 1; min-height: 0; overflow: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 12px 30px rgba(0,48,73,.055); transition: opacity .15s var(--ease); }
 .table-wrap.loading { opacity: 0.55; pointer-events: none; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-thead th { position: sticky; top: 0; z-index: 2; background: var(--surface); color: var(--od3); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 14px; text-align: left; font-weight: 600; box-shadow: inset 0 -1px 0 var(--border-strong); white-space: nowrap; }
-td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--od2); vertical-align: middle; }
+thead th { position: sticky; top: 0; z-index: 2; background: #fbfaf7; color: var(--od3); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 11px 15px; text-align: left; font-weight: 650; box-shadow: inset 0 -1px 0 var(--border-strong); white-space: nowrap; }
+td { padding: 11px 15px; border-bottom: 1px solid var(--border); color: var(--od2); vertical-align: middle; }
 tbody tr { cursor: pointer; }
 tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover td { background: rgba(247,127,0,0.06); }
 td.nombre { color: var(--od); font-weight: 500; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lead-cell strong { display: block; color: var(--od); font-weight: 650; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lead-cell small, .context-cell small, .contact-cell small { display: block; color: var(--od3); font-size: 10.5px; margin-top: 3px; }
+.contact-cell span { display: block; font-family: var(--mono); font-size: 11px; white-space: nowrap; }
 td.cat { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 td.tel, td.email { font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 td.email { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
@@ -300,12 +321,27 @@ a.link-tag:hover { background: rgba(0,48,73,0.1); }
 }
 @media (max-width: 900px) {
   body { overflow: auto; }
-  .layout { grid-template-columns: 1fr; height: auto; min-height: 100dvh; }
-  .sidebar { max-height: 260px; border-right: 0; border-bottom: 1px solid var(--border); }
+  .layout { height: auto; min-height: 100dvh; }
+  .sidebar { height: 60px; flex-basis: 60px; padding: 0 16px; }
+  .brand img { width: 120px; }
   .main { min-height: 100dvh; padding: 16px; }
   .stats { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
-  .toolbar select { max-width: none; flex: 1; }
+  .stat-card, .stat-card:first-child { border-left: 1px solid var(--border); padding-left: 12px; }
+  .view-tabs { width: 100%; overflow-x: auto; }
+  .view-tab { flex: 0 0 auto; }
+  .filter-panel { grid-template-columns: 1fr 1fr; }
   .table-wrap { min-height: 55dvh; }
+}
+@media (max-width: 560px) {
+  .page-head { align-items: flex-start; }
+  .page-head h1 { font-size: 27px; }
+  .head-actions { width: 100%; }
+  .head-actions .btn { flex: 1; }
+  .stats { display: flex; overflow-x: auto; padding-bottom: 6px; }
+  .stat-card { min-width: 132px; }
+  .filter-panel { grid-template-columns: 1fr; }
+  .filter-panel .segment-bar { grid-column: 1; }
+  .search-wrap .kbd { display: none; }
 }
 </style>
 </head>
@@ -315,7 +351,7 @@ a.link-tag:hover { background: rgba(0,48,73,0.1); }
 <!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="brand">
-    <img src="/assets/logo-libera.png" alt="LIBERA">
+    <img src="/assets/logo-libera.png" alt="LIBERA Studio">
     <small>CRM</small>
   </div>
 
@@ -422,7 +458,8 @@ a.link-tag:hover { background: rgba(0,48,73,0.1); }
 <main class="main">
   <div class="page-head">
     <div>
-      <h1>Leads</h1>
+      <p class="eyebrow">Bandeja comercial</p>
+      <h1>Seguimiento de leads</h1>
       <span class="sub" id="headSub"></span>
     </div>
     <div class="head-actions">
@@ -431,8 +468,16 @@ a.link-tag:hover { background: rgba(0,48,73,0.1); }
     </div>
   </div>
 
+  <nav class="view-tabs" aria-label="Vistas rápidas">
+    <button class="view-tab active" data-view="todos" onclick="setView('todos')">Todos</button>
+    <button class="view-tab" data-view="sin_contactar" onclick="setView('sin_contactar')">Sin contactar</button>
+    <button class="view-tab" data-view="trabajados" onclick="setView('trabajados')">Trabajados</button>
+    <button class="view-tab" data-view="respondieron" onclick="setView('respondieron')">Respondieron</button>
+    <button class="view-tab" data-view="cerrados" onclick="setView('cerrados')">Cerrados</button>
+  </nav>
+
   <div class="stats">
-    <div class="stat-card"><div class="stat-num" id="s-total">${stats.total}</div><div class="stat-lbl">Leads totales</div></div>
+    <button class="stat-card actionable" onclick="setView('trabajados')"><div class="stat-num" id="s-trab">${stats.trabajados}</div><div class="stat-lbl">Trabajados</div></button>
     <button class="stat-card actionable" onclick="quickFilter('seguimiento','vencido')"><div class="stat-num" style="color:var(--red)" id="s-venc">${stats.seguimiento_vencido}</div><div class="stat-lbl">Seguimientos vencidos</div></button>
     <button class="stat-card actionable" onclick="quickFilter('seguimiento','hoy')"><div class="stat-num" style="color:var(--yellow)" id="s-hoy">${stats.seguimiento_hoy}</div><div class="stat-lbl">Para hoy</div></button>
     <button class="stat-card actionable" onclick="quickFilter('seguimiento','proximos7')"><div class="stat-num" style="color:var(--blue)" id="s-prox">${stats.seguimiento_proximos7}</div><div class="stat-lbl">Próximos 7 días</div></button>
@@ -444,6 +489,14 @@ a.link-tag:hover { background: rgba(0,48,73,0.1); }
       <input class="search" type="text" placeholder="Buscar nombre, contacto, notas, etiquetas o próxima acción..." id="searchInput" oninput="onSearch(this.value)">
       <span class="kbd">/</span>
     </div>
+    <button class="btn btn-ghost filter-toggle" onclick="toggleFilters()">Filtros <span class="filter-count" id="filterCount">0</span></button>
+  </div>
+
+  <div class="filter-panel" id="filterPanel">
+    <select id="estadoSelect" onchange="setSimpleFilter('estado', this.value)">
+      <option value="">Cualquier estado</option>
+      ${ESTADOS.map(e => '<option value="' + e + '">' + e + '</option>').join('')}
+    </select>
     <select id="catSelect" onchange="setCategoria(this.value)">
       <option value="">Todas las categorías</option>
     </select>
@@ -458,19 +511,37 @@ a.link-tag:hover { background: rgba(0,48,73,0.1); }
       <option value="seguimiento">Próximo seguimiento</option>
       <option value="prioridad">Mayor prioridad</option>
     </select>
-  </div>
 
-  <div class="segment-bar">
-    <select id="savedSegments" onchange="applySavedSegment(this.value)">
-      <option value="">Segmentos guardados</option>
+    <select id="canalSelect" onchange="setSimpleFilter('canal', this.value)">
+      <option value="">Cualquier canal</option>
+      ${CANALES.map(c => '<option value="' + c + '">' + c + '</option>').join('')}
     </select>
-    <button class="text-btn" onclick="toggleSegmentComposer()">Guardar vista actual</button>
-    <div class="segment-composer" id="segmentComposer">
-      <input id="segmentName" maxlength="40" placeholder="Nombre del segmento">
-      <button class="btn btn-primary" onclick="saveSegment()">Guardar</button>
-      <button class="text-btn" onclick="toggleSegmentComposer(false)">Cancelar</button>
+    <select id="linkSelect" onchange="setSimpleFilter('link', this.value)">
+      <option value="">Cualquier tipo de link</option>
+      ${LINKS.map(l => '<option value="' + l + '">' + l + '</option>').join('')}
+    </select>
+    <select id="emailSelect" onchange="setSimpleFilter('email', this.value)">
+      <option value="">Con o sin email</option>
+      <option value="con">Con email</option>
+      <option value="sin">Sin email</option>
+    </select>
+    <select id="prioridadSelect" onchange="setSimpleFilter('prioridad', this.value)">
+      <option value="">Cualquier prioridad</option>
+      ${PRIORIDADES.map(p => '<option value="' + p + '">' + p + '</option>').join('')}
+    </select>
+
+    <div class="segment-bar">
+      <select id="savedSegments" onchange="applySavedSegment(this.value)">
+        <option value="">Segmentos guardados</option>
+      </select>
+      <button class="text-btn" onclick="toggleSegmentComposer()">Guardar filtros como segmento</button>
+      <div class="segment-composer" id="segmentComposer">
+        <input id="segmentName" maxlength="40" placeholder="Nombre del segmento">
+        <button class="btn btn-primary" onclick="saveSegment()">Guardar</button>
+        <button class="text-btn" onclick="toggleSegmentComposer(false)">Cancelar</button>
+      </div>
+      <button class="text-btn" id="deleteSegmentBtn" style="display:none;color:var(--red)" onclick="deleteSelectedSegment()">Eliminar segmento</button>
     </div>
-    <button class="text-btn" id="deleteSegmentBtn" style="display:none;color:var(--red)" onclick="deleteSelectedSegment()">Eliminar segmento</button>
   </div>
 
   <div class="chips" id="chips"></div>
@@ -479,13 +550,9 @@ a.link-tag:hover { background: rgba(0,48,73,0.1); }
     <table id="leadsTable">
       <thead>
         <tr>
-          <th>#</th>
-          <th>Nombre</th>
-          <th>Categoría</th>
-          <th>Ciudad</th>
-          <th>Teléfono</th>
-          <th>Email</th>
-          <th>Link</th>
+          <th>Lead</th>
+          <th>Contexto</th>
+          <th>Contacto</th>
           <th>Estado</th>
           <th>Prioridad</th>
           <th>Próxima acción</th>
@@ -520,10 +587,6 @@ const ESTADOS = ${JSON.stringify(ESTADOS)};
 const CANALES = ${JSON.stringify(CANALES)};
 const PRIORIDADES = ${JSON.stringify(PRIORIDADES)};
 const CANAL_COLOR = { WhatsApp: 'var(--wa)', Instagram: 'var(--ig)', Email: 'var(--blue)', FaceBook: 'var(--fb)' };
-const LINK_COLOR = {
-  'Web propia': 'var(--od)', Facebook: 'var(--fb)', Instagram: 'var(--ig)',
-  TikTok: 'var(--tt)', WhatsApp: 'var(--wa)', Linktree: 'var(--lt)', 'Sin link': 'var(--od3)',
-};
 const ESTADO_CLASS = {
   'Sin contactar':            'estado-sin',
   'Contactado por Email':     'estado-email',
@@ -543,11 +606,11 @@ const CANAL_A_ESTADO = {
   Email:     'Contactado por Email',
   FaceBook:  'Contactado por FaceBook',
 };
-const GROUP_LABEL = { estado: 'Estado', canal: 'Canal', link: 'Link', email: 'Email', categoria: 'Categoría', ciudad: 'Ciudad', prioridad: 'Prioridad', seguimiento: 'Seguimiento', etiqueta: 'Etiqueta', orden: 'Orden', q: 'Búsqueda' };
+const GROUP_LABEL = { estado: 'Estado', actividad: 'Vista', canal: 'Canal', link: 'Link', email: 'Email', categoria: 'Categoría', ciudad: 'Ciudad', prioridad: 'Prioridad', seguimiento: 'Seguimiento', etiqueta: 'Etiqueta', orden: 'Orden', q: 'Búsqueda' };
 const FILTER_LABEL = { vencido: 'Vencidos', hoy: 'Para hoy', proximos7: 'Próximos 7 días', sin_fecha: 'Sin fecha', seguimiento: 'Próximo seguimiento', prioridad: 'Mayor prioridad' };
 
 // Filtros combinables: todos aplican a la vez
-const filtros = { estado: '', canal: '', link: '', email: '', categoria: '', ciudad: '', prioridad: '', seguimiento: '', etiqueta: '', orden: '', q: '' };
+const filtros = { estado: '', actividad: '', canal: '', link: '', email: '', categoria: '', ciudad: '', prioridad: '', seguimiento: '', etiqueta: '', orden: '', q: '' };
 let page = 0;
 let total = 0;
 const PAGE_SIZE = 100;
@@ -565,6 +628,7 @@ function buildParams(paging = true) {
   const params = new URLSearchParams();
   if (paging) { params.set('limit', PAGE_SIZE); params.set('offset', page * PAGE_SIZE); }
   if (filtros.estado)    params.set('estado', filtros.estado);
+  if (filtros.actividad) params.set('actividad', filtros.actividad);
   if (filtros.canal)     params.set('canal', filtros.canal);
   if (filtros.link)      params.set('link', filtros.link);
   if (filtros.email)     params.set('email', filtros.email);
@@ -592,17 +656,13 @@ async function loadLeads() {
   tbody.innerHTML = '';
 
   if (!leads.length) {
-    tbody.innerHTML = \`<tr><td colspan="11"><div class="empty-state">
+    tbody.innerHTML = \`<tr><td colspan="7"><div class="empty-state">
       <strong>Sin resultados</strong>
       \${hayFiltros() ? 'Ningún lead coincide con los filtros activos.<br><br><button class="btn btn-ghost" onclick="clearAll()">Limpiar filtros</button>' : 'Aún no hay leads en el CRM.'}
     </div></td></tr>\`;
   }
 
   leads.forEach(l => {
-    const linkColor = LINK_COLOR[l.tipo_link] || 'var(--od2)';
-    const linkHtml = l.sitio_web
-      ? \`<a class="link-tag" style="color:\${linkColor}" href="\${esc(l.sitio_web)}" target="_blank" onclick="event.stopPropagation()" title="\${esc(l.sitio_web)}">\${esc(l.tipo_link)} ↗</a>\`
-      : \`<span class="link-tag" style="color:var(--od3)">—</span>\`;
     const priorityClass = 'priority-' + (l.prioridad || 'Media').toLowerCase();
     const tags = (l.etiquetas || '').split(',').map(v => v.trim()).filter(Boolean);
     const tagsHtml = tags.slice(0, 2).map(tag => \`<span class="tag">\${esc(tag)}</span>\`).join('') + (tags.length > 2 ? \`<span class="tag">+\${tags.length - 2}</span>\` : '');
@@ -612,18 +672,17 @@ async function loadLeads() {
     const dueDay = due ? new Date(due.getFullYear(), due.getMonth(), due.getDate()) : null;
     const dueClass = due && due < now ? 'overdue' : dueDay && dueDay.getTime() === today.getTime() ? 'today' : '';
     const dueLabel = due ? due.toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Sin fecha';
+    const lastContact = l.fecha_contacto ? new Date(l.fecha_contacto).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
     const followupHtml = l.proxima_accion || due
       ? \`<div class="followup \${dueClass}"><strong title="\${esc(l.proxima_accion || '')}">\${esc(l.proxima_accion || 'Seguimiento')}</strong><time>\${esc(dueLabel)}</time></div>\`
-      : '<span style="color:var(--od3)">—</span>';
+      : lastContact
+        ? \`<div class="followup"><strong>Sin próxima acción</strong><time>Último contacto: \${esc(lastContact)}</time></div>\`
+        : '<span style="color:var(--od3)">Sin actividad</span>';
     tbody.insertAdjacentHTML('beforeend', \`
       <tr onclick="openDrawer(\${l.id})">
-        <td class="idcol">\${l.id}</td>
-        <td class="nombre" title="\${esc(l.nombre)}">\${esc(l.nombre)}</td>
-        <td class="cat" title="\${esc(l.categoria || '')}">\${esc(l.categoria || '')}</td>
-        <td class="cat" title="\${esc(l.ciudad || '')}">\${esc(l.ciudad || '')}</td>
-        <td class="tel">\${esc(l.telefono || '')}</td>
-        <td class="email" title="\${esc(l.email || '')}">\${esc(l.email || '')}</td>
-        <td>\${linkHtml}</td>
+        <td class="lead-cell"><strong title="\${esc(l.nombre)}">\${esc(l.nombre)}</strong><small>#\${l.id}\${l.tipo_link ? \` · \${esc(l.tipo_link)}\` : ''}</small></td>
+        <td class="context-cell"><span>\${esc(l.categoria || 'Sin categoría')}</span><small>\${esc(l.ciudad || 'Sin ciudad')}</small></td>
+        <td class="contact-cell"><span>\${esc(l.telefono || 'Sin teléfono')}</span><small title="\${esc(l.email || '')}">\${esc(l.email || 'Sin email')}</small></td>
         <td>\${badge(l.estado)}</td>
         <td><span class="priority \${priorityClass}">\${esc(l.prioridad || 'Media')}</span></td>
         <td>\${followupHtml}</td>
@@ -643,11 +702,15 @@ async function loadLeads() {
   document.getElementById('btnNext').disabled = (page + 1) * PAGE_SIZE >= total;
 
   renderChips();
+  syncViewTabs();
+  updateFilterCount();
 }
 
 function renderChips() {
   const chips = document.getElementById('chips');
-  const activos = Object.entries(filtros).filter(([, v]) => v);
+  const activos = Object.entries(filtros).filter(([k, v]) =>
+    v && k !== 'actividad' && !(k === 'estado' && (v === 'Sin contactar' || v === 'Respondió'))
+  );
   chips.innerHTML = activos.map(([k, v]) =>
     \`<span class="chip">\${GROUP_LABEL[k]}: \${esc(k === 'email' ? (v === 'con' ? 'Con email' : 'Sin email') : (FILTER_LABEL[v] || v))}
       <button onclick="clearFiltro('\${k}')" title="Quitar filtro">✕</button></span>\`
@@ -664,6 +727,48 @@ function syncSidebar() {
     const activo = g === 'estado' && !filtros.estado ? b.dataset.val === '' : filtros[g] === b.dataset.val && b.dataset.val !== '';
     b.classList.toggle('active', activo);
   });
+}
+
+function currentView() {
+  if (filtros.estado === 'Sin contactar' && !filtros.actividad) return 'sin_contactar';
+  if (filtros.estado === 'Respondió' && !filtros.actividad) return 'respondieron';
+  if (filtros.actividad === 'trabajados') return 'trabajados';
+  if (filtros.actividad === 'cerrados') return 'cerrados';
+  return 'todos';
+}
+
+function syncViewTabs() {
+  const active = currentView();
+  document.querySelectorAll('.view-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.view === active));
+}
+
+function setView(view) {
+  filtros.estado = '';
+  filtros.actividad = '';
+  if (view === 'sin_contactar') filtros.estado = 'Sin contactar';
+  if (view === 'trabajados') filtros.actividad = 'trabajados';
+  if (view === 'respondieron') filtros.estado = 'Respondió';
+  if (view === 'cerrados') filtros.actividad = 'cerrados';
+  document.getElementById('estadoSelect').value = filtros.estado;
+  page = 0;
+  syncViewTabs();
+  loadLeads();
+}
+
+function toggleFilters(force) {
+  const panel = document.getElementById('filterPanel');
+  const open = typeof force === 'boolean' ? force : !panel.classList.contains('open');
+  panel.classList.toggle('open', open);
+}
+
+function updateFilterCount() {
+  const advanced = ['estado', 'canal', 'link', 'email', 'categoria', 'ciudad', 'prioridad', 'seguimiento', 'etiqueta'];
+  const quickState = filtros.estado === 'Sin contactar' || filtros.estado === 'Respondió';
+  const count = advanced.filter(k => filtros[k] && !(k === 'estado' && quickState)).length;
+  const badge = document.getElementById('filterCount');
+  badge.textContent = count;
+  badge.classList.toggle('visible', count > 0);
+  if (count > 0) toggleFilters(true);
 }
 
 function setFiltro(btn) {
@@ -687,6 +792,11 @@ function clearFiltro(k) {
   if (k === 'ciudad') document.getElementById('ciudadSelect').value = '';
   if (k === 'etiqueta') document.getElementById('tagSelect').value = '';
   if (k === 'orden') document.getElementById('ordenSelect').value = '';
+  if (k === 'estado') document.getElementById('estadoSelect').value = '';
+  if (k === 'canal') document.getElementById('canalSelect').value = '';
+  if (k === 'link') document.getElementById('linkSelect').value = '';
+  if (k === 'email') document.getElementById('emailSelect').value = '';
+  if (k === 'prioridad') document.getElementById('prioridadSelect').value = '';
   page = 0;
   syncSidebar();
   loadLeads();
@@ -699,6 +809,11 @@ function clearAll() {
   document.getElementById('ciudadSelect').value = '';
   document.getElementById('tagSelect').value = '';
   document.getElementById('ordenSelect').value = '';
+  document.getElementById('estadoSelect').value = '';
+  document.getElementById('canalSelect').value = '';
+  document.getElementById('linkSelect').value = '';
+  document.getElementById('emailSelect').value = '';
+  document.getElementById('prioridadSelect').value = '';
   document.getElementById('savedSegments').value = '';
   document.getElementById('deleteSegmentBtn').style.display = 'none';
   page = 0;
@@ -720,6 +835,7 @@ function setCiudad(val) {
 
 function setSimpleFilter(key, val) {
   filtros[key] = val;
+  if (key === 'estado') filtros.actividad = '';
   page = 0;
   loadLeads();
 }
@@ -824,7 +940,14 @@ function syncFilterControls() {
   document.getElementById('ciudadSelect').value = filtros.ciudad;
   document.getElementById('tagSelect').value = filtros.etiqueta;
   document.getElementById('ordenSelect').value = filtros.orden;
+  document.getElementById('estadoSelect').value = filtros.estado;
+  document.getElementById('canalSelect').value = filtros.canal;
+  document.getElementById('linkSelect').value = filtros.link;
+  document.getElementById('emailSelect').value = filtros.email;
+  document.getElementById('prioridadSelect').value = filtros.prioridad;
   syncSidebar();
+  syncViewTabs();
+  updateFilterCount();
 }
 
 function applySavedSegment(id) {
@@ -1042,7 +1165,7 @@ function refreshStats() {
     set('b-lwa',  links['WhatsApp'] || 0);
     set('b-ltr',  links['Linktree'] || 0);
     set('b-lno',  links['Sin link'] || 0);
-    set('s-total', s.total);
+    set('s-trab',  s.trabajados);
     set('s-venc',  s.seguimiento_vencido);
     set('s-hoy',   s.seguimiento_hoy);
     set('s-prox',  s.seguimiento_proximos7);

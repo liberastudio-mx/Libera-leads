@@ -144,11 +144,14 @@ const LINK_CASE = `CASE
   ELSE 'Web propia'
 END`;
 
-function buildWhere({ estado, canal, q, tipo_link, tiene_email, categoria, ciudad, prioridad, seguimiento, etiqueta } = {}) {
+function buildWhere({ estado, actividad, canal, q, tipo_link, tiene_email, categoria, ciudad, prioridad, seguimiento, etiqueta } = {}) {
   const where  = [];
   const params = [];
 
   if (estado) { where.push('estado = ?'); params.push(estado); }
+  if (actividad === 'trabajados') where.push("estado != 'Sin contactar'");
+  if (actividad === 'contactados') where.push("estado LIKE 'Contactado por %'");
+  if (actividad === 'cerrados') where.push("estado IN ('Cerrado', 'Cerrado vendido')");
   if (canal)  { where.push('canal_contacto LIKE ?'); params.push(`%${canal}%`); }
   if (tipo_link) { where.push(`${LINK_CASE} = ?`); params.push(tipo_link); }
   if (tiene_email === 'con') where.push("email IS NOT NULL AND email != ''");
@@ -175,9 +178,9 @@ function buildWhere({ estado, canal, q, tipo_link, tiene_email, categoria, ciuda
   return { clause: where.length ? ' WHERE ' + where.join(' AND ') : '', params };
 }
 
-function getLeads({ estado, canal, q, tipo_link, tiene_email, categoria, ciudad, prioridad, seguimiento, etiqueta, orden, limit, offset } = {}) {
+function getLeads({ estado, actividad, canal, q, tipo_link, tiene_email, categoria, ciudad, prioridad, seguimiento, etiqueta, orden, limit, offset } = {}) {
   const db = getDb();
-  const { clause, params } = buildWhere({ estado, canal, q, tipo_link, tiene_email, categoria, ciudad, prioridad, seguimiento, etiqueta });
+  const { clause, params } = buildWhere({ estado, actividad, canal, q, tipo_link, tiene_email, categoria, ciudad, prioridad, seguimiento, etiqueta });
   const orderBy = orden === 'seguimiento'
     ? "CASE WHEN fecha_seguimiento IS NULL OR fecha_seguimiento = '' THEN 1 ELSE 0 END, datetime(fecha_seguimiento) ASC, id DESC"
     : orden === 'prioridad'
@@ -310,6 +313,7 @@ function getStats() {
     seguimiento_proximos7: db.prepare("SELECT COUNT(*) as n FROM leads WHERE fecha_seguimiento IS NOT NULL AND fecha_seguimiento != '' AND date(fecha_seguimiento) > date('now', 'localtime') AND date(fecha_seguimiento) <= date('now', 'localtime', '+7 days')").get().n,
     sin_seguimiento: db.prepare("SELECT COUNT(*) as n FROM leads WHERE fecha_seguimiento IS NULL OR fecha_seguimiento = ''").get().n,
     prioridad_alta: db.prepare("SELECT COUNT(*) as n FROM leads WHERE prioridad = 'Alta'").get().n,
+    trabajados: db.prepare("SELECT COUNT(*) as n FROM leads WHERE estado != 'Sin contactar'").get().n,
     // Tipo de link (clasificación de sitio_web)
     links:          Object.fromEntries(
       db.prepare(`SELECT ${LINK_CASE} AS tipo, COUNT(*) as n FROM leads GROUP BY tipo`).all()
