@@ -64,6 +64,23 @@ function getDb() {
   if (!cols.includes('ciudad')) {
     _db.exec("ALTER TABLE leads ADD COLUMN ciudad TEXT");
   }
+  if (!cols.includes('prioridad')) {
+    _db.exec("ALTER TABLE leads ADD COLUMN prioridad TEXT NOT NULL DEFAULT 'Media'");
+  }
+  if (!cols.includes('proxima_accion')) {
+    _db.exec("ALTER TABLE leads ADD COLUMN proxima_accion TEXT");
+  }
+  if (!cols.includes('fecha_seguimiento')) {
+    _db.exec("ALTER TABLE leads ADD COLUMN fecha_seguimiento TEXT");
+  }
+  if (!cols.includes('etiquetas')) {
+    _db.exec("ALTER TABLE leads ADD COLUMN etiquetas TEXT");
+  }
+
+  _db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_leads_prioridad ON leads (prioridad);
+    CREATE INDEX IF NOT EXISTS idx_leads_seguimiento ON leads (fecha_seguimiento);
+  `);
 
   // Migración: renombrar estados viejos a la nomenclatura "Contactado por X"
   _db.exec(`
@@ -127,7 +144,7 @@ const LINK_CASE = `CASE
   ELSE 'Web propia'
 END`;
 
-function buildWhere({ estado, canal, q, tipo_link, tiene_email, categoria, ciudad } = {}) {
+function buildWhere({ estado, canal, q, tipo_link, tiene_email, categoria, ciudad, prioridad, seguimiento, etiqueta } = {}) {
   const where  = [];
   const params = [];
 
@@ -138,19 +155,35 @@ function buildWhere({ estado, canal, q, tipo_link, tiene_email, categoria, ciuda
   if (tiene_email === 'sin') where.push("(email IS NULL OR email = '')");
   if (categoria) { where.push('categoria = ?'); params.push(categoria); }
   if (ciudad) { where.push('ciudad = ?'); params.push(ciudad); }
+  if (prioridad) { where.push('prioridad = ?'); params.push(prioridad); }
+  if (etiqueta) { where.push("(',' || REPLACE(COALESCE(etiquetas, ''), ', ', ',') || ',') LIKE ?"); params.push(`%,${etiqueta},%`); }
+  if (seguimiento === 'vencido') {
+    where.push("fecha_seguimiento IS NOT NULL AND fecha_seguimiento != '' AND datetime(fecha_seguimiento) < datetime('now', 'localtime')");
+  } else if (seguimiento === 'hoy') {
+    where.push("fecha_seguimiento IS NOT NULL AND fecha_seguimiento != '' AND date(fecha_seguimiento) = date('now', 'localtime')");
+  } else if (seguimiento === 'proximos7') {
+    where.push("fecha_seguimiento IS NOT NULL AND fecha_seguimiento != '' AND date(fecha_seguimiento) > date('now', 'localtime') AND date(fecha_seguimiento) <= date('now', 'localtime', '+7 days')");
+  } else if (seguimiento === 'sin_fecha') {
+    where.push("fecha_seguimiento IS NULL OR fecha_seguimiento = ''");
+  }
   if (q) {
-    where.push('(nombre LIKE ? OR email LIKE ? OR telefono LIKE ? OR categoria LIKE ? OR direccion LIKE ? OR notas LIKE ?)');
+    where.push('(nombre LIKE ? OR email LIKE ? OR telefono LIKE ? OR categoria LIKE ? OR direccion LIKE ? OR notas LIKE ? OR etiquetas LIKE ? OR proxima_accion LIKE ?)');
     const like = `%${q}%`;
-    params.push(like, like, like, like, like, like);
+    params.push(like, like, like, like, like, like, like, like);
   }
 
   return { clause: where.length ? ' WHERE ' + where.join(' AND ') : '', params };
 }
 
-function getLeads({ estado, canal, q, tipo_link, tiene_email, categoria, ciudad, limit, offset } = {}) {
+function getLeads({ estado, canal, q, tipo_link, tiene_email, categoria, ciudad, prioridad, seguimiento, etiqueta, orden, limit, offset } = {}) {
   const db = getDb();
-  const { clause, params } = buildWhere({ estado, canal, q, tipo_link, tiene_email, categoria, ciudad });
-  let sql = `SELECT *, ${LINK_CASE} AS tipo_link FROM leads${clause} ORDER BY id DESC`;
+  const { clause, params } = buildWhere({ estado, canal, q, tipo_link, tiene_email, categoria, ciudad, prioridad, seguimiento, etiqueta });
+  const orderBy = orden === 'seguimiento'
+    ? "CASE WHEN fecha_seguimiento IS NULL OR fecha_seguimiento = '' THEN 1 ELSE 0 END, datetime(fecha_seguimiento) ASC, id DESC"
+    : orden === 'prioridad'
+      ? "CASE prioridad WHEN 'Alta' THEN 1 WHEN 'Media' THEN 2 WHEN 'Baja' THEN 3 ELSE 4 END, id DESC"
+      : 'id DESC';
+  let sql = `SELECT *, ${LINK_CASE} AS tipo_link FROM leads${clause} ORDER BY ${orderBy}`;
 
   if (limit)  { sql += ' LIMIT ?';  params.push(limit); }
   if (offset) { sql += ' OFFSET ?'; params.push(offset); }
@@ -177,6 +210,18 @@ function getCiudades() {
     WHERE ciudad IS NOT NULL AND ciudad != ''
     GROUP BY ciudad ORDER BY n DESC
   `).all();
+}
+
+function getEtiquetas() {
+  const counts = new Map();
+  for (const row of getDb().prepare("SELECT etiquetas FROM leads WHERE etiquetas IS NOT NULL AND etiquetas != ''").all()) {
+    for (const tag of row.etiquetas.split(',').map(v => v.trim()).filter(Boolean)) {
+      counts.set(tag, (counts.get(tag) || 0) + 1);
+    }
+  }
+  return [...counts.entries()]
+    .map(([etiqueta, n]) => ({ etiqueta, n }))
+    .sort((a, b) => b.n - a.n || a.etiqueta.localeCompare(b.etiqueta));
 }
 
 function getLead(id) {
@@ -213,7 +258,7 @@ function updateCanal(id, canal) {
 }
 
 function updateLead(id, fields) {
-  const allowed = ['estado', 'notas', 'email', 'telefono', 'fecha_contacto', 'email_subject', 'email_body'];
+  const allowed = ['estado', 'notas', 'email', 'telefono', 'fecha_contacto', 'email_subject', 'email_body', 'prioridad', 'proxima_accion', 'fecha_seguimiento', 'etiquetas'];
   const sets    = Object.keys(fields).filter(k => allowed.includes(k)).map(k => `${k} = ?`);
   if (!sets.length) return;
   const vals = sets.map(s => fields[s.split(' ')[0]]);
@@ -260,6 +305,11 @@ function getStats() {
     canal_fb:       db.prepare("SELECT COUNT(*) as n FROM leads WHERE canal_contacto LIKE '%FaceBook%'").get().n,
     contactados:    db.prepare("SELECT COUNT(*) as n FROM leads WHERE canal_contacto IS NOT NULL AND canal_contacto != ''").get().n,
     sin_email:      db.prepare("SELECT COUNT(*) as n FROM leads WHERE email IS NULL OR email = ''").get().n,
+    seguimiento_vencido: db.prepare("SELECT COUNT(*) as n FROM leads WHERE fecha_seguimiento IS NOT NULL AND fecha_seguimiento != '' AND datetime(fecha_seguimiento) < datetime('now', 'localtime')").get().n,
+    seguimiento_hoy: db.prepare("SELECT COUNT(*) as n FROM leads WHERE fecha_seguimiento IS NOT NULL AND fecha_seguimiento != '' AND date(fecha_seguimiento) = date('now', 'localtime')").get().n,
+    seguimiento_proximos7: db.prepare("SELECT COUNT(*) as n FROM leads WHERE fecha_seguimiento IS NOT NULL AND fecha_seguimiento != '' AND date(fecha_seguimiento) > date('now', 'localtime') AND date(fecha_seguimiento) <= date('now', 'localtime', '+7 days')").get().n,
+    sin_seguimiento: db.prepare("SELECT COUNT(*) as n FROM leads WHERE fecha_seguimiento IS NULL OR fecha_seguimiento = ''").get().n,
+    prioridad_alta: db.prepare("SELECT COUNT(*) as n FROM leads WHERE prioridad = 'Alta'").get().n,
     // Tipo de link (clasificación de sitio_web)
     links:          Object.fromEntries(
       db.prepare(`SELECT ${LINK_CASE} AS tipo, COUNT(*) as n FROM leads GROUP BY tipo`).all()
@@ -277,6 +327,7 @@ module.exports = {
   countLeadsFiltered,
   getCategorias,
   getCiudades,
+  getEtiquetas,
   searchLeads,
   updateEstado,
   updateNotas,

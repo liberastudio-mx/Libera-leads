@@ -21,9 +21,10 @@ app.use('/assets', express.static(path.join(__dirname, 'assets')));
 const ESTADOS = ['Sin contactar', 'Contactado por Email', 'Contactado por WhatsApp', 'Contactado por Instagram', 'Contactado por FaceBook', 'Respondió', 'Cerrado', 'Cerrado vendido', 'No interesa'];
 const CANALES = ['WhatsApp', 'Instagram', 'Email', 'FaceBook'];
 const LINKS   = ['Web propia', 'Facebook', 'Instagram', 'TikTok', 'WhatsApp', 'Linktree', 'Sin link'];
+const PRIORIDADES = ['Alta', 'Media', 'Baja'];
 
 function parseFilters(query) {
-  const { estado, canal, q, link, email, categoria, ciudad } = query;
+  const { estado, canal, q, link, email, categoria, ciudad, prioridad, seguimiento, etiqueta, orden } = query;
   return {
     estado:      estado    || undefined,
     canal:       canal     || undefined,
@@ -32,6 +33,10 @@ function parseFilters(query) {
     tiene_email: email     || undefined,   // 'con' | 'sin'
     categoria:   categoria || undefined,
     ciudad:      ciudad    || undefined,
+    prioridad:   prioridad || undefined,
+    seguimiento: seguimiento || undefined,
+    etiqueta:    etiqueta  || undefined,
+    orden:       orden     || undefined,
   };
 }
 
@@ -49,6 +54,10 @@ app.get('/api/ciudades', (req, res) => {
   res.json(db.getCiudades());
 });
 
+app.get('/api/etiquetas', (req, res) => {
+  res.json(db.getEtiquetas());
+});
+
 app.get('/api/leads', (req, res) => {
   const { limit = 100, offset = 0 } = req.query;
   const filters = parseFilters(req.query);
@@ -60,7 +69,7 @@ app.get('/api/leads', (req, res) => {
 app.get('/api/export.csv', (req, res) => {
   const filters = parseFilters(req.query);
   const leads = db.getLeads(filters);
-  const cols = ['id', 'nombre', 'categoria', 'ciudad', 'telefono', 'email', 'sitio_web', 'tipo_link', 'estado', 'canal_contacto', 'calificacion', 'resenas', 'direccion', 'fecha_scrapeado', 'fecha_contacto', 'notas'];
+  const cols = ['id', 'nombre', 'categoria', 'ciudad', 'telefono', 'email', 'sitio_web', 'tipo_link', 'estado', 'canal_contacto', 'prioridad', 'proxima_accion', 'fecha_seguimiento', 'etiquetas', 'calificacion', 'resenas', 'direccion', 'fecha_scrapeado', 'fecha_contacto', 'notas'];
   const csvCell = v => {
     const s = v == null ? '' : String(v);
     return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
@@ -80,10 +89,16 @@ app.get('/api/leads/:id', (req, res) => {
 });
 
 app.patch('/api/leads/:id', (req, res) => {
-  const { estado, notas, fecha_contacto, canal_contacto } = req.body;
+  const { estado, notas, fecha_contacto, canal_contacto, prioridad, proxima_accion, fecha_seguimiento, etiquetas } = req.body;
   if (estado) db.updateEstado(+req.params.id, estado, fecha_contacto || new Date().toISOString());
   if (notas !== undefined) db.updateNotas(+req.params.id, notas);
   if (canal_contacto !== undefined) db.updateCanal(+req.params.id, canal_contacto);
+  db.updateLead(+req.params.id, {
+    ...(prioridad !== undefined ? { prioridad: PRIORIDADES.includes(prioridad) ? prioridad : 'Media' } : {}),
+    ...(proxima_accion !== undefined ? { proxima_accion: String(proxima_accion || '').trim() || null } : {}),
+    ...(fecha_seguimiento !== undefined ? { fecha_seguimiento: fecha_seguimiento || null } : {}),
+    ...(etiquetas !== undefined ? { etiquetas: String(etiquetas || '').split(',').map(v => v.trim()).filter(Boolean).join(', ') || null } : {}),
+  });
   res.json(db.getLead(+req.params.id));
 });
 
@@ -150,6 +165,9 @@ button { font-family: var(--font); }
 /* ── Stats ── */
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
 .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px 14px; box-shadow: var(--shadow-sm); }
+.stat-card.actionable { cursor: pointer; text-align: left; font-family: var(--font); color: var(--od); transition: transform .15s var(--ease), border-color .15s var(--ease), box-shadow .15s var(--ease); }
+.stat-card.actionable:hover { transform: translateY(-1px); border-color: rgba(247,127,0,.30); box-shadow: var(--shadow-md); }
+.stat-card.actionable:active { transform: translateY(0); }
 .stat-num { font-size: 24px; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.15; }
 .stat-lbl { font-size: 10.5px; color: var(--od3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 3px; font-weight: 600; }
 
@@ -162,6 +180,14 @@ button { font-family: var(--font); }
 .search:focus { outline: none; border-color: var(--fire); box-shadow: 0 0 0 3px rgba(247,127,0,0.12); }
 .toolbar select { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; color: var(--od2); font-size: 13px; max-width: 230px; font-family: var(--font); }
 .toolbar select:focus { outline: none; border-color: var(--fire); }
+.segment-bar { display: flex; gap: 8px; margin: -2px 0 10px; align-items: center; flex-wrap: wrap; }
+.segment-bar select, .segment-bar input { background: transparent; border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 9px; color: var(--od2); font-size: 12px; font-family: var(--font); }
+.segment-bar select { min-width: 190px; }
+.segment-composer { display: none; align-items: center; gap: 6px; }
+.segment-composer.open { display: flex; }
+.segment-composer input { background: var(--surface); min-width: 190px; }
+.text-btn { border: none; background: none; color: var(--fire-dark); cursor: pointer; padding: 5px 3px; font-size: 12px; font-weight: 600; }
+.text-btn:hover { text-decoration: underline; }
 .btn { padding: 8px 14px; border-radius: var(--radius); border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: background .12s var(--ease), border-color .12s var(--ease); }
 .btn-primary { background: var(--fire); color: #fff; }
 .btn-primary:hover { background: var(--fire-dark); }
@@ -198,6 +224,16 @@ td.fecha { color: var(--od3); font-size: 11px; white-space: nowrap; font-variant
 .link-tag { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 700; white-space: nowrap; background: rgba(0,48,73,0.05); }
 a.link-tag:hover { background: rgba(0,48,73,0.1); }
 .canal-tag { display: inline-block; padding: 2px 7px; border-radius: 100px; font-size: 10px; font-weight: 600; margin-right: 3px; white-space: nowrap; background: rgba(0,48,73,0.05); }
+.priority { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 650; white-space: nowrap; }
+.priority::before { content: ''; width: 7px; height: 7px; border-radius: 2px; background: var(--od3); }
+.priority-alta::before { background: var(--red); }
+.priority-media::before { background: var(--fire); }
+.priority-baja::before { background: var(--green); }
+.followup { min-width: 150px; }
+.followup strong { display: block; color: var(--od); font-size: 12px; max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.followup time { display: block; color: var(--od3); font-size: 10.5px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.followup.overdue time { color: var(--red); font-weight: 700; }
+.followup.today time { color: var(--yellow); font-weight: 700; }
 .estado { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 100px; font-size: 11px; font-weight: 600; white-space: nowrap; }
 .estado::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .estado-sin   { background: rgba(0,48,73,0.06); color: var(--od3); }
@@ -240,6 +276,17 @@ a.link-tag:hover { background: rgba(0,48,73,0.1); }
 .field select, .field textarea { width: 100%; background: var(--void); border: 1px solid var(--border); border-radius: var(--radius); color: var(--od); padding: 8px 10px; font-size: 13px; font-family: var(--font); }
 .field select:focus, .field textarea:focus { outline: none; border-color: var(--fire); box-shadow: 0 0 0 3px rgba(247,127,0,0.12); }
 .field textarea { resize: vertical; min-height: 76px; }
+.followup-panel { background: #fff8ed; border: 1px solid rgba(247,127,0,.22); border-radius: var(--radius-lg); padding: 14px; margin-bottom: 17px; }
+.followup-panel .panel-title { font-size: 12px; font-weight: 750; margin-bottom: 12px; color: var(--od); }
+.followup-grid { display: grid; grid-template-columns: 1fr 1.35fr; gap: 10px; }
+.followup-panel .field { margin-bottom: 10px; }
+.followup-panel .field:last-of-type { margin-bottom: 0; }
+.followup-panel input, .followup-panel select { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); color: var(--od); padding: 8px 10px; font: inherit; }
+.followup-panel input:focus, .followup-panel select:focus { outline: none; border-color: var(--fire); box-shadow: 0 0 0 3px rgba(247,127,0,.12); }
+.tag-list { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+.tag { background: rgba(0,48,73,.06); color: var(--od2); padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 650; }
+.toast { position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 12px); background: var(--od); color: #fff; padding: 9px 14px; border-radius: var(--radius); font-size: 12px; z-index: 200; opacity: 0; pointer-events: none; transition: opacity .18s var(--ease), transform .18s var(--ease); box-shadow: var(--shadow-md); }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
 .canal-check { display: flex; gap: 4px 14px; flex-wrap: wrap; margin-top: 2px; }
 .canal-check label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--od2); cursor: pointer; padding: 3px 0; text-transform: none; letter-spacing: 0; font-weight: 500; margin-bottom: 0; }
 .canal-check input { accent-color: var(--fire); width: 15px; height: 15px; }
@@ -250,6 +297,15 @@ a.link-tag:hover { background: rgba(0,48,73,0.1); }
 
 @media (prefers-reduced-motion: reduce) {
   .drawer, .drawer-overlay, .filter-btn, .table-wrap, .btn, .search { transition: none; }
+}
+@media (max-width: 900px) {
+  body { overflow: auto; }
+  .layout { grid-template-columns: 1fr; height: auto; min-height: 100dvh; }
+  .sidebar { max-height: 260px; border-right: 0; border-bottom: 1px solid var(--border); }
+  .main { min-height: 100dvh; padding: 16px; }
+  .stats { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+  .toolbar select { max-width: none; flex: 1; }
+  .table-wrap { min-height: 55dvh; }
 }
 </style>
 </head>
@@ -294,6 +350,27 @@ a.link-tag:hover { background: rgba(0,48,73,0.1); }
   <button class="filter-btn" data-group="estado" data-val="No interesa" onclick="setFiltro(this)">
     No interesa <span class="badge" id="b-no">${stats.no_interesa}</span>
   </button>
+
+  <div class="nav-label">Seguimiento</div>
+  <button class="filter-btn" data-group="seguimiento" data-val="vencido" onclick="setFiltro(this)">
+    <span><span class="dot" style="background:var(--red)"></span>Vencidos</span> <span class="badge" id="b-venc">${stats.seguimiento_vencido}</span>
+  </button>
+  <button class="filter-btn" data-group="seguimiento" data-val="hoy" onclick="setFiltro(this)">
+    <span><span class="dot" style="background:var(--yellow)"></span>Para hoy</span> <span class="badge" id="b-hoy">${stats.seguimiento_hoy}</span>
+  </button>
+  <button class="filter-btn" data-group="seguimiento" data-val="proximos7" onclick="setFiltro(this)">
+    Próximos 7 días <span class="badge" id="b-prox">${stats.seguimiento_proximos7}</span>
+  </button>
+  <button class="filter-btn" data-group="seguimiento" data-val="sin_fecha" onclick="setFiltro(this)">
+    Sin seguimiento <span class="badge" id="b-sf">${stats.sin_seguimiento}</span>
+  </button>
+
+  <div class="nav-label">Prioridad</div>
+  <button class="filter-btn" data-group="prioridad" data-val="Alta" onclick="setFiltro(this)">
+    <span><span class="dot" style="background:var(--red)"></span>Alta</span> <span class="badge" id="b-pa">${stats.prioridad_alta}</span>
+  </button>
+  <button class="filter-btn" data-group="prioridad" data-val="Media" onclick="setFiltro(this)">Media</button>
+  <button class="filter-btn" data-group="prioridad" data-val="Baja" onclick="setFiltro(this)">Baja</button>
 
   <div class="nav-label">Canal de contacto</div>
   <button class="filter-btn" data-group="canal" data-val="WhatsApp" onclick="setFiltro(this)">
@@ -356,15 +433,15 @@ a.link-tag:hover { background: rgba(0,48,73,0.1); }
 
   <div class="stats">
     <div class="stat-card"><div class="stat-num" id="s-total">${stats.total}</div><div class="stat-lbl">Leads totales</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--fire-dark)" id="s-sin">${stats.sin_contactar}</div><div class="stat-lbl">Sin contactar</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--yellow)" id="s-resp">${stats.respondio}</div><div class="stat-lbl">Respondieron</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--green)" id="s-cerr">${stats.cerrado}</div><div class="stat-lbl">Cerrados</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--blue)" id="s-cont">${stats.contactados}</div><div class="stat-lbl">Contactados</div></div>
+    <button class="stat-card actionable" onclick="quickFilter('seguimiento','vencido')"><div class="stat-num" style="color:var(--red)" id="s-venc">${stats.seguimiento_vencido}</div><div class="stat-lbl">Seguimientos vencidos</div></button>
+    <button class="stat-card actionable" onclick="quickFilter('seguimiento','hoy')"><div class="stat-num" style="color:var(--yellow)" id="s-hoy">${stats.seguimiento_hoy}</div><div class="stat-lbl">Para hoy</div></button>
+    <button class="stat-card actionable" onclick="quickFilter('seguimiento','proximos7')"><div class="stat-num" style="color:var(--blue)" id="s-prox">${stats.seguimiento_proximos7}</div><div class="stat-lbl">Próximos 7 días</div></button>
+    <button class="stat-card actionable" onclick="quickFilter('prioridad','Alta')"><div class="stat-num" style="color:var(--fire-dark)" id="s-pa">${stats.prioridad_alta}</div><div class="stat-lbl">Prioridad alta</div></button>
   </div>
 
   <div class="toolbar">
     <div class="search-wrap">
-      <input class="search" type="text" placeholder="Buscar nombre, email, teléfono, categoría, notas..." id="searchInput" oninput="onSearch(this.value)">
+      <input class="search" type="text" placeholder="Buscar nombre, contacto, notas, etiquetas o próxima acción..." id="searchInput" oninput="onSearch(this.value)">
       <span class="kbd">/</span>
     </div>
     <select id="catSelect" onchange="setCategoria(this.value)">
@@ -373,6 +450,27 @@ a.link-tag:hover { background: rgba(0,48,73,0.1); }
     <select id="ciudadSelect" onchange="setCiudad(this.value)">
       <option value="">Todas las ciudades</option>
     </select>
+    <select id="tagSelect" onchange="setSimpleFilter('etiqueta', this.value)">
+      <option value="">Todas las etiquetas</option>
+    </select>
+    <select id="ordenSelect" onchange="setSimpleFilter('orden', this.value)">
+      <option value="">Más recientes</option>
+      <option value="seguimiento">Próximo seguimiento</option>
+      <option value="prioridad">Mayor prioridad</option>
+    </select>
+  </div>
+
+  <div class="segment-bar">
+    <select id="savedSegments" onchange="applySavedSegment(this.value)">
+      <option value="">Segmentos guardados</option>
+    </select>
+    <button class="text-btn" onclick="toggleSegmentComposer()">Guardar vista actual</button>
+    <div class="segment-composer" id="segmentComposer">
+      <input id="segmentName" maxlength="40" placeholder="Nombre del segmento">
+      <button class="btn btn-primary" onclick="saveSegment()">Guardar</button>
+      <button class="text-btn" onclick="toggleSegmentComposer(false)">Cancelar</button>
+    </div>
+    <button class="text-btn" id="deleteSegmentBtn" style="display:none;color:var(--red)" onclick="deleteSelectedSegment()">Eliminar segmento</button>
   </div>
 
   <div class="chips" id="chips"></div>
@@ -389,8 +487,9 @@ a.link-tag:hover { background: rgba(0,48,73,0.1); }
           <th>Email</th>
           <th>Link</th>
           <th>Estado</th>
-          <th>Canal</th>
-          <th>Scrapeado</th>
+          <th>Prioridad</th>
+          <th>Próxima acción</th>
+          <th>Etiquetas</th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -414,10 +513,12 @@ a.link-tag:hover { background: rgba(0,48,73,0.1); }
   <button class="drawer-close" onclick="closeDrawer()" aria-label="Cerrar">✕</button>
   <div id="drawerContent" style="display:contents"></div>
 </div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 const ESTADOS = ${JSON.stringify(ESTADOS)};
 const CANALES = ${JSON.stringify(CANALES)};
+const PRIORIDADES = ${JSON.stringify(PRIORIDADES)};
 const CANAL_COLOR = { WhatsApp: 'var(--wa)', Instagram: 'var(--ig)', Email: 'var(--blue)', FaceBook: 'var(--fb)' };
 const LINK_COLOR = {
   'Web propia': 'var(--od)', Facebook: 'var(--fb)', Instagram: 'var(--ig)',
@@ -442,10 +543,11 @@ const CANAL_A_ESTADO = {
   Email:     'Contactado por Email',
   FaceBook:  'Contactado por FaceBook',
 };
-const GROUP_LABEL = { estado: 'Estado', canal: 'Canal', link: 'Link', email: 'Email', categoria: 'Categoría', ciudad: 'Ciudad', q: 'Búsqueda' };
+const GROUP_LABEL = { estado: 'Estado', canal: 'Canal', link: 'Link', email: 'Email', categoria: 'Categoría', ciudad: 'Ciudad', prioridad: 'Prioridad', seguimiento: 'Seguimiento', etiqueta: 'Etiqueta', orden: 'Orden', q: 'Búsqueda' };
+const FILTER_LABEL = { vencido: 'Vencidos', hoy: 'Para hoy', proximos7: 'Próximos 7 días', sin_fecha: 'Sin fecha', seguimiento: 'Próximo seguimiento', prioridad: 'Mayor prioridad' };
 
 // Filtros combinables: todos aplican a la vez
-const filtros = { estado: '', canal: '', link: '', email: '', categoria: '', ciudad: '', q: '' };
+const filtros = { estado: '', canal: '', link: '', email: '', categoria: '', ciudad: '', prioridad: '', seguimiento: '', etiqueta: '', orden: '', q: '' };
 let page = 0;
 let total = 0;
 const PAGE_SIZE = 100;
@@ -468,6 +570,10 @@ function buildParams(paging = true) {
   if (filtros.email)     params.set('email', filtros.email);
   if (filtros.categoria) params.set('categoria', filtros.categoria);
   if (filtros.ciudad)    params.set('ciudad', filtros.ciudad);
+  if (filtros.prioridad) params.set('prioridad', filtros.prioridad);
+  if (filtros.seguimiento) params.set('seguimiento', filtros.seguimiento);
+  if (filtros.etiqueta) params.set('etiqueta', filtros.etiqueta);
+  if (filtros.orden) params.set('orden', filtros.orden);
   if (filtros.q)         params.set('q', filtros.q);
   return params;
 }
@@ -486,22 +592,29 @@ async function loadLeads() {
   tbody.innerHTML = '';
 
   if (!leads.length) {
-    tbody.innerHTML = \`<tr><td colspan="10"><div class="empty-state">
+    tbody.innerHTML = \`<tr><td colspan="11"><div class="empty-state">
       <strong>Sin resultados</strong>
       \${hayFiltros() ? 'Ningún lead coincide con los filtros activos.<br><br><button class="btn btn-ghost" onclick="clearAll()">Limpiar filtros</button>' : 'Aún no hay leads en el CRM.'}
     </div></td></tr>\`;
   }
 
   leads.forEach(l => {
-    const fecha = l.fecha_scrapeado ? l.fecha_scrapeado.slice(0, 10) : '';
     const linkColor = LINK_COLOR[l.tipo_link] || 'var(--od2)';
     const linkHtml = l.sitio_web
       ? \`<a class="link-tag" style="color:\${linkColor}" href="\${esc(l.sitio_web)}" target="_blank" onclick="event.stopPropagation()" title="\${esc(l.sitio_web)}">\${esc(l.tipo_link)} ↗</a>\`
       : \`<span class="link-tag" style="color:var(--od3)">—</span>\`;
-    const canales = (l.canal_contacto || '').split(',').map(c => c.trim()).filter(Boolean);
-    const canalHtml = canales.map(c =>
-      \`<span class="canal-tag" style="color:\${CANAL_COLOR[c] || 'var(--od2)'}">\${esc(c)}</span>\`
-    ).join('') || '<span style="color:var(--od3)">—</span>';
+    const priorityClass = 'priority-' + (l.prioridad || 'Media').toLowerCase();
+    const tags = (l.etiquetas || '').split(',').map(v => v.trim()).filter(Boolean);
+    const tagsHtml = tags.slice(0, 2).map(tag => \`<span class="tag">\${esc(tag)}</span>\`).join('') + (tags.length > 2 ? \`<span class="tag">+\${tags.length - 2}</span>\` : '');
+    const due = l.fecha_seguimiento ? new Date(l.fecha_seguimiento) : null;
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const dueDay = due ? new Date(due.getFullYear(), due.getMonth(), due.getDate()) : null;
+    const dueClass = due && due < now ? 'overdue' : dueDay && dueDay.getTime() === today.getTime() ? 'today' : '';
+    const dueLabel = due ? due.toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Sin fecha';
+    const followupHtml = l.proxima_accion || due
+      ? \`<div class="followup \${dueClass}"><strong title="\${esc(l.proxima_accion || '')}">\${esc(l.proxima_accion || 'Seguimiento')}</strong><time>\${esc(dueLabel)}</time></div>\`
+      : '<span style="color:var(--od3)">—</span>';
     tbody.insertAdjacentHTML('beforeend', \`
       <tr onclick="openDrawer(\${l.id})">
         <td class="idcol">\${l.id}</td>
@@ -512,8 +625,9 @@ async function loadLeads() {
         <td class="email" title="\${esc(l.email || '')}">\${esc(l.email || '')}</td>
         <td>\${linkHtml}</td>
         <td>\${badge(l.estado)}</td>
-        <td>\${canalHtml}</td>
-        <td class="fecha">\${fecha}</td>
+        <td><span class="priority \${priorityClass}">\${esc(l.prioridad || 'Media')}</span></td>
+        <td>\${followupHtml}</td>
+        <td><div class="tag-list">\${tagsHtml || '<span style="color:var(--od3)">—</span>'}</div></td>
       </tr>
     \`);
   });
@@ -535,7 +649,7 @@ function renderChips() {
   const chips = document.getElementById('chips');
   const activos = Object.entries(filtros).filter(([, v]) => v);
   chips.innerHTML = activos.map(([k, v]) =>
-    \`<span class="chip">\${GROUP_LABEL[k]}: \${esc(k === 'email' ? (v === 'con' ? 'Con email' : 'Sin email') : v)}
+    \`<span class="chip">\${GROUP_LABEL[k]}: \${esc(k === 'email' ? (v === 'con' ? 'Con email' : 'Sin email') : (FILTER_LABEL[v] || v))}
       <button onclick="clearFiltro('\${k}')" title="Quitar filtro">✕</button></span>\`
   ).join('');
   if (activos.length > 1) {
@@ -557,6 +671,10 @@ function setFiltro(btn) {
   const v = btn.dataset.val;
   // Clic en el filtro ya activo lo desactiva (excepto "Todos")
   filtros[g] = (filtros[g] === v && v !== '') ? '' : v;
+  if (g === 'seguimiento') {
+    filtros.orden = filtros[g] ? 'seguimiento' : '';
+    document.getElementById('ordenSelect').value = filtros.orden;
+  }
   page = 0;
   syncSidebar();
   loadLeads();
@@ -567,6 +685,8 @@ function clearFiltro(k) {
   if (k === 'q') document.getElementById('searchInput').value = '';
   if (k === 'categoria') document.getElementById('catSelect').value = '';
   if (k === 'ciudad') document.getElementById('ciudadSelect').value = '';
+  if (k === 'etiqueta') document.getElementById('tagSelect').value = '';
+  if (k === 'orden') document.getElementById('ordenSelect').value = '';
   page = 0;
   syncSidebar();
   loadLeads();
@@ -577,6 +697,10 @@ function clearAll() {
   document.getElementById('searchInput').value = '';
   document.getElementById('catSelect').value = '';
   document.getElementById('ciudadSelect').value = '';
+  document.getElementById('tagSelect').value = '';
+  document.getElementById('ordenSelect').value = '';
+  document.getElementById('savedSegments').value = '';
+  document.getElementById('deleteSegmentBtn').style.display = 'none';
   page = 0;
   syncSidebar();
   loadLeads();
@@ -591,6 +715,21 @@ function setCategoria(val) {
 function setCiudad(val) {
   filtros.ciudad = val;
   page = 0;
+  loadLeads();
+}
+
+function setSimpleFilter(key, val) {
+  filtros[key] = val;
+  page = 0;
+  loadLeads();
+}
+
+function quickFilter(key, val) {
+  filtros[key] = filtros[key] === val ? '' : val;
+  if (key === 'seguimiento') filtros.orden = filtros[key] ? 'seguimiento' : '';
+  document.getElementById('ordenSelect').value = filtros.orden;
+  page = 0;
+  syncSidebar();
   loadLeads();
 }
 
@@ -634,6 +773,92 @@ async function loadCiudades() {
   });
 }
 
+async function loadEtiquetas() {
+  const tags = await fetch('/api/etiquetas').then(r => r.json());
+  const sel = document.getElementById('tagSelect');
+  tags.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.etiqueta;
+    opt.textContent = \`\${t.etiqueta} (\${t.n})\`;
+    sel.appendChild(opt);
+  });
+}
+
+const SEGMENTS_KEY = 'libera-crm-segments';
+function getSegments() {
+  try { return JSON.parse(localStorage.getItem(SEGMENTS_KEY) || '[]'); } catch (_) { return []; }
+}
+
+function renderSavedSegments(selected = '') {
+  const sel = document.getElementById('savedSegments');
+  sel.innerHTML = '<option value="">Segmentos guardados</option>' + getSegments().map(s =>
+    \`<option value="\${esc(s.id)}" \${String(s.id) === String(selected) ? 'selected' : ''}>\${esc(s.name)}</option>\`
+  ).join('');
+  document.getElementById('deleteSegmentBtn').style.display = selected ? '' : 'none';
+}
+
+function toggleSegmentComposer(force) {
+  const composer = document.getElementById('segmentComposer');
+  const open = typeof force === 'boolean' ? force : !composer.classList.contains('open');
+  composer.classList.toggle('open', open);
+  if (open) setTimeout(() => document.getElementById('segmentName').focus(), 0);
+}
+
+function saveSegment() {
+  const input = document.getElementById('segmentName');
+  const name = input.value.trim();
+  if (!name) { input.focus(); return; }
+  const segments = getSegments();
+  const segment = { id: Date.now(), name, filters: { ...filtros } };
+  segments.push(segment);
+  localStorage.setItem(SEGMENTS_KEY, JSON.stringify(segments));
+  input.value = '';
+  toggleSegmentComposer(false);
+  renderSavedSegments(segment.id);
+  showToast('Segmento guardado');
+}
+
+function syncFilterControls() {
+  document.getElementById('searchInput').value = filtros.q;
+  document.getElementById('catSelect').value = filtros.categoria;
+  document.getElementById('ciudadSelect').value = filtros.ciudad;
+  document.getElementById('tagSelect').value = filtros.etiqueta;
+  document.getElementById('ordenSelect').value = filtros.orden;
+  syncSidebar();
+}
+
+function applySavedSegment(id) {
+  if (!id) {
+    document.getElementById('deleteSegmentBtn').style.display = 'none';
+    return;
+  }
+  const segment = getSegments().find(s => String(s.id) === String(id));
+  if (!segment) return;
+  Object.keys(filtros).forEach(k => filtros[k] = segment.filters[k] || '');
+  page = 0;
+  syncFilterControls();
+  document.getElementById('deleteSegmentBtn').style.display = '';
+  loadLeads();
+}
+
+function deleteSelectedSegment() {
+  const sel = document.getElementById('savedSegments');
+  if (!sel.value) return;
+  const segments = getSegments().filter(s => String(s.id) !== String(sel.value));
+  localStorage.setItem(SEGMENTS_KEY, JSON.stringify(segments));
+  renderSavedSegments();
+  showToast('Segmento eliminado');
+}
+
+let toastTimer;
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+}
+
 async function copyText(txt, el) {
   try {
     await navigator.clipboard.writeText(txt);
@@ -660,6 +885,34 @@ async function openDrawer(id) {
       \${acciones ? \`<div class="quick-actions">\${acciones}</div>\` : ''}
     </div>
     <div class="drawer-body">
+
+    <section class="followup-panel">
+      <div class="panel-title">Siguiente paso</div>
+      <div class="followup-grid">
+        <div class="field">
+          <label>Prioridad</label>
+          <select id="drawerPrioridad">
+            \${PRIORIDADES.map(p => \`<option \${p===(l.prioridad || 'Media')?'selected':''} value="\${p}">\${p}</option>\`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label>Fecha y hora</label>
+          <input id="drawerFechaSeguimiento" type="datetime-local" value="\${esc((l.fecha_seguimiento || '').slice(0,16))}">
+        </div>
+      </div>
+      <div class="field">
+        <label>Próxima acción</label>
+        <input id="drawerProximaAccion" value="\${esc(l.proxima_accion || '')}" placeholder="Ej. enviar propuesta o llamar">
+      </div>
+      <div class="field">
+        <label>Etiquetas</label>
+        <input id="drawerEtiquetas" value="\${esc(l.etiquetas || '')}" placeholder="Ej. restaurante, oportunidad, referido">
+      </div>
+      <div style="display:flex;gap:7px;margin-top:10px">
+        <button class="btn btn-primary" style="flex:1" onclick="saveFollowup(\${l.id}, this)">Guardar seguimiento</button>
+        \${l.fecha_seguimiento || l.proxima_accion ? \`<button class="btn btn-ghost" onclick="completeFollowup(\${l.id})">Marcar hecho</button>\` : ''}
+      </div>
+    </section>
 
     <div class="field">
       <label>Estado</label>
@@ -717,7 +970,7 @@ async function openDrawer(id) {
     <div class="field">
       <label>Notas</label>
       <textarea id="drawerNotas" placeholder="Notas internas...">\${esc(l.notas || '')}</textarea>
-      <button class="btn btn-primary" style="margin-top:8px;width:100%" onclick="saveNotas(\${l.id})">Guardar notas</button>
+      <button class="btn btn-primary" style="margin-top:8px;width:100%" onclick="saveNotas(\${l.id}, this)">Guardar notas</button>
     </div>
 
     <div class="drawer-meta">
@@ -776,6 +1029,11 @@ function refreshStats() {
     set('b-cfb',   s.canal_fb);
     set('b-econ',  s.con_email);
     set('b-esin',  s.sin_email);
+    set('b-venc',  s.seguimiento_vencido);
+    set('b-hoy',   s.seguimiento_hoy);
+    set('b-prox',  s.seguimiento_proximos7);
+    set('b-sf',    s.sin_seguimiento);
+    set('b-pa',    s.prioridad_alta);
     const links = s.links || {};
     set('b-lweb', links['Web propia'] || 0);
     set('b-lfb',  links['Facebook'] || 0);
@@ -785,10 +1043,10 @@ function refreshStats() {
     set('b-ltr',  links['Linktree'] || 0);
     set('b-lno',  links['Sin link'] || 0);
     set('s-total', s.total);
-    set('s-sin',   s.sin_contactar);
-    set('s-resp',  s.respondio);
-    set('s-cerr',  s.cerrado);
-    set('s-cont',  s.contactados);
+    set('s-venc',  s.seguimiento_vencido);
+    set('s-hoy',   s.seguimiento_hoy);
+    set('s-prox',  s.seguimiento_proximos7);
+    set('s-pa',    s.prioridad_alta);
   });
 }
 
@@ -817,20 +1075,61 @@ async function saveCanal(id, checkbox) {
   refreshStats();
 }
 
-async function saveNotas(id) {
+async function saveFollowup(id, button) {
+  const body = {
+    prioridad: document.getElementById('drawerPrioridad').value,
+    proxima_accion: document.getElementById('drawerProximaAccion').value,
+    fecha_seguimiento: document.getElementById('drawerFechaSeguimiento').value,
+    etiquetas: document.getElementById('drawerEtiquetas').value,
+  };
+  button.disabled = true;
+  await fetch('/api/leads/' + id, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  button.disabled = false;
+  showToast('Seguimiento actualizado');
+  loadLeads();
+  refreshStats();
+  refreshTags();
+}
+
+async function completeFollowup(id) {
+  await fetch('/api/leads/' + id, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ proxima_accion: '', fecha_seguimiento: '' }),
+  });
+  showToast('Seguimiento completado');
+  loadLeads();
+  refreshStats();
+  openDrawer(id);
+}
+
+async function saveNotas(id, btn) {
   const notas = document.getElementById('drawerNotas').value;
   await fetch('/api/leads/' + id, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ notas }),
   });
-  const btn = event.target;
   btn.textContent = '✓ Guardado';
   setTimeout(() => btn.textContent = 'Guardar notas', 1500);
 }
 
+async function refreshTags() {
+  const selected = filtros.etiqueta;
+  const sel = document.getElementById('tagSelect');
+  sel.innerHTML = '<option value="">Todas las etiquetas</option>';
+  await loadEtiquetas();
+  sel.value = selected;
+}
+
 loadCategorias();
 loadCiudades();
+loadEtiquetas();
+renderSavedSegments();
 loadLeads();
 </script>
 </body>
